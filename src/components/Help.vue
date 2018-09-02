@@ -10,7 +10,7 @@
 		-->
 		<yd-accordion>
 			<yd-accordion-item v-for="item in items" :title="item.title" :key="item.index">
-				<div style="padding: .24rem;" @click="testClick()">
+				<div style="padding: .24rem;">
 					<p>{{item.detail}}</p>
 				</div>
 			</yd-accordion-item>
