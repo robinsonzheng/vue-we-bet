@@ -19,5 +19,7 @@
 		color: #2c3e50;
 		margin: 10px;
 		background-color: transparent;
+		width: 100%;
+		height: 100%;
 	}
 </style>
