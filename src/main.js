@@ -5,11 +5,16 @@ import YDUI from 'vue-ydui'; /* 相当于import YDUI from 'vue-ydui/ydui.rem.js'
 /*import 'vue-ydui/dist/ydui.rem.css'; /* 使用px：import 'vue-ydui/dist/ydui.px.css'; */
 import 'vue-ydui/dist/ydui.px.css'
 import 'vue-ydui/dist/ydui.base.css';
+import MintUI from 'mint-ui'
+import 'mint-ui/lib/style.css'
 import { Confirm, Alert, Toast, Notify, Loading } from 'vue-ydui/dist/lib.rem/dialog';
+import VueClipboard from 'vue-clipboard2'
 
 Vue.config.productionTip = false
 
-Vue.use(YDUI);
+Vue.use(YDUI)
+Vue.use(MintUI)
+Vue.use(VueClipboard)
 
 Vue.prototype.$dialog = {
     confirm: Confirm,
@@ -17,7 +22,9 @@ Vue.prototype.$dialog = {
     toast: Toast,
     notify: Notify,
     loading: Loading,
-};
+}
+
+// Vue.prototype.$VueClipboard = VueClipboard
 
 /* eslint-disable no-new */
 new Vue({
