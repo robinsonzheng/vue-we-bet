@@ -14,7 +14,7 @@
                     </yd-flexbox-item>
                     <yd-flexbox-item>
                         <div class="holder">
-                            <span>设备编号: {{this.serialNo}}</span>
+                            <span style="font-size:.85rem;">设备编号: {{this.serialNo}}</span>
                             <yd-icon name="feedback" style="font-size: 1.2rem;margin-left:10px;" @click.native="copyBtnClick"></yd-icon>
                         </div>
                     </yd-flexbox-item>
@@ -34,50 +34,82 @@
 </template>
 
 <script>
+import wx from "weixin-js-sdk";
 export default {
-    data() {
-        return {serialNo:'12345678'}
-    },
-    methods:{
-        okClick() {
-            // console.log(WeixinJSBridge)
-            //回到公众号主体
-            if(WeixinJSBridge){
-                WeixinJSBridge.call('closeWindow') 
-            }           
-        },
-        copyBtnClick() {
-            //复制
+  data() {
+    return { serialNo: "12345678" };
+  },
+  methods: {
+    okClick() {
+      //回到公众号主体
+      let url = location.href.split("#")[0]; //获取锚点之前的链接
+      this.$ajax
+        .post("/scan?url=" + url, {
+          url: url
+        })
+        .then(response => {
+          let res = response.data;
+          wx.config({
+            // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            debug: true,
+            // 必填，公众号的唯一标识
+            appId: "wx1578db3d1b70d661",
+            // 必填，生成签名的时间戳
+            timestamp: "" + res.timestamp,
+            // 必填，生成签名的随机串
+            nonceStr: res.noncestr,
+            // 必填，签名
+            signature: res.signature,
+            // 必填，需要使用的JS接口列表，所有JS接口列表
+            jsApiList: ["checkJsApi", "closeWindow"]
+          });
+        });
 
-        }
-    },
-    mounted(){
-        // console.log(WeixinJSBridge)
-        var clipboard = new ClipboardJS('.yd-icon-feedback')
-        console.log(clipboard)
+      wx.ready(function() {
+        wx.checkJsApi({
+          jsApiList: ["scanQRCode"],
+          success: function(res) {}
+        });
+        wx.closeWindow();
+      });
+
+      wx.error(function(err) {
+        alert(err);
+      });
     }
-}
+  },
+  copyBtnClick() {
+    //复制
+  },
+  mounted() {
+    // console.log(WeixinJSBridge)
+    // var clipboard = new ClipboardJS('.yd-icon-feedback')
+    // console.log(clipboard)
+  }
+};
 </script>
 
 <style scoped>
-    .content {
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-    }
-    .content .desc {
-        text-align: left;
-        padding: 10px;
-    }
-    .content .title {
-        /* text-align: center; */
-        height: 60px;
-        line-height: 60px;
-        text-align:left;font-size:1.5rem
-    }
-    .content .holder {
-        justify-content:center;/*子元素水平居中*/
-        align-items:center;/*子元素垂直居中*/
-        display:-webkit-flex;
-    } 
+.content {
+  width: 100%;
+  height: 100%;
+  padding: 30px;
+}
+.content .desc {
+  text-align: left;
+  padding: (10px, 0, 0, 10px);
+  font-size: 0.85rem;
+}
+.content .title {
+  /* text-align: center; */
+  height: 60px;
+  line-height: 60px;
+  text-align: left;
+  font-size: 1.5rem;
+}
+.content .holder {
+  justify-content: center; /*子元素水平居中*/
+  align-items: center; /*子元素垂直居中*/
+  display: -webkit-flex;
+}
 </style>

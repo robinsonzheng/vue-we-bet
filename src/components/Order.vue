@@ -5,7 +5,7 @@
             <yd-cell-item>                
                 <span slot="left">设备编号:{{post.serialNo}}</span>
                 <div slot="right">
-                    <router-link to="#" slot="right">
+                    <router-link to="/bindins" slot="right">
                         <yd-icon name="setting" size="1.5rem" color="#777"></yd-icon>
                     </router-link>
                 </div>
@@ -105,12 +105,23 @@
 export default {
   data() {
     return {
-      post: {activeIndex:0},
+      post: { activeIndex: 0 },
       error: null
     };
   },
   created() {
-    // 组件创建完后获取数据，
+    // 组件创建完后
+    // 获取openid
+    this.$root.$wxajax
+      .get(process.env.WX_API_GET_OPENID)
+      .then(function(res) {
+        console.log(res);
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
+
+    // 获取数据
     // 此时 data 已经被 observed 了
     this.fetchData();
   },
@@ -149,38 +160,36 @@ export default {
       }
     },
     watchQty: function() {
-        if(!this.post.qtyErr) {
-          this.post.amount = this.post.price * this.post.qty;
-        }
+      if (!this.post.qtyErr) {
+        this.post.amount = this.post.price * this.post.qty;
+      }
     },
     buttonClick: function(index, qty) {
-      this.$set(this.post, "activeIndex", index)
+      this.$set(this.post, "activeIndex", index);
       console.log(this.post.activeIndex);
       if (index > 4) {
         //其他数量
-        if(!this.post.qty){
-            this.$set(this.post, "qty", 1)
+        if (!this.post.qty) {
+          this.$set(this.post, "qty", 1);
         }
-        this.$set(this.post, "tmpQty", this.post.qty)
-        this.$set(this.post, "showOtherQty", true)
+        this.$set(this.post, "tmpQty", this.post.qty);
+        this.$set(this.post, "showOtherQty", true);
       } else {
-        this.$set(this.post, "qty", qty)
+        this.$set(this.post, "qty", qty);
       }
     },
     confirmQtyClick: function() {
-        if(!this.post.qtyErr) {
-            this.post.qty = this.post.tmpQty
-            this.post.showOtherQty=false
-        }       
+      if (!this.post.qtyErr) {
+        this.post.qty = this.post.tmpQty;
+        this.post.showOtherQty = false;
+      }
     },
     payClick: function() {
-      console.log("go to pay page")
+      console.log("go to pay page");
       wxPay({}, (err, res) => {
         //支付成功，跳转到成功页面
-        
         //支付失败，跳转到失败页面
-
-      })
+      });
     },
     getPost(id, callback) {
       //TODO: 调用数据API，包括返回数据以及错误处理
@@ -197,8 +206,7 @@ export default {
       }, 500);
     },
     wxPay(params, callback) {
-        //TODO: 微信支付
-
+      //TODO: 微信支付
     }
   }
 };
@@ -255,27 +263,27 @@ td button {
 }
 /* basic style */
 .close {
-    /* still bad on picking color */
-    color: black;
-    /* make a round button */
-    border-radius: 12px;
-    /* center text */
-    line-height: 30px;
-    text-align: center;
-    height: 30px;
-    width: 30px;
-    font-size: 20px;
-    padding: 0px;
+  /* still bad on picking color */
+  color: black;
+  /* make a round button */
+  border-radius: 12px;
+  /* center text */
+  line-height: 30px;
+  text-align: center;
+  height: 30px;
+  width: 30px;
+  font-size: 20px;
+  padding: 0px;
 }
 /* use cross as close button */
 .close::before {
-    content: "\2716";
+  content: "\2716";
 }
 /* place the button on top-right */
 .close {
-    top: 5px;
-    right: 5px;
-    position: absolute;
+  top: 5px;
+  right: 5px;
+  position: absolute;
 }
 </style>
 
