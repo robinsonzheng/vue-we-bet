@@ -8,6 +8,7 @@ import Ticket from "@/components/Ticket";
 import TicketErr from "@/components/TicketErr";
 import DeviceErr from "@/components/DeviceErr";
 import BindIns from "@/components/BindInstruction";
+import BindDevice from "@/components/BindDevice";
 
 Vue.use(Router);
 
@@ -75,6 +76,14 @@ export default new Router({
       component: BindIns,
       meta: {
         title: "设备绑定说明"
+      }
+    },
+    {
+      path: "/bind",
+      name: "Bind",
+      component: BindDevice,
+      meta: {
+        title: "设备绑定"
       }
     }
   ]

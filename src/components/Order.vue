@@ -5,9 +5,9 @@
             <yd-cell-item>                
                 <span slot="left">设备编号:{{post.serialNo}}</span>
                 <div slot="right">
-                    <router-link to="/bindins" slot="right">
-                        <yd-icon name="setting" size="1.5rem" color="#777"></yd-icon>
-                    </router-link>
+                    <!-- <router-link slot="right"> -->
+                        <yd-icon name="setting" size="1.5rem" color="#777" @click.native ="bindClick"></yd-icon>
+                    <!-- </router-link> -->
                 </div>
             </yd-cell-item>
         </yd-cell-group>
@@ -207,6 +207,9 @@ export default {
     },
     wxPay(params, callback) {
       //TODO: 微信支付
+    },
+    bindClick(event) {
+      this.$router.push(this.$store.state.isAdminBinded ? '/bindins' : '/bind');
     }
   }
 };
