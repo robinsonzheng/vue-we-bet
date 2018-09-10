@@ -9,6 +9,9 @@ import TicketErr from "@/components/TicketErr";
 import DeviceErr from "@/components/DeviceErr";
 import BindIns from "@/components/BindInstruction";
 import BindDevice from "@/components/BindDevice";
+import FindPwd from "@/components/admin/FindPwd";
+import Register from "@/components/admin/Register";
+import BindAdmin from "@/components/admin/BindAdmin";
 
 Vue.use(Router);
 
@@ -84,6 +87,30 @@ export default new Router({
       component: BindDevice,
       meta: {
         title: "设备绑定"
+      }
+    },
+    {
+      path: "/register",
+      name: "Register",
+      component: Register,
+      meta: {
+        title: "注册管理员"
+      }
+    },
+    {
+      path: "/bindadmin",
+      name: "BindAdmin",
+      component: BindAdmin,
+      meta: {
+        title: "绑定管理员"
+      }
+    },
+    {
+      path: "/findpwd",
+      name: "FindPwd",
+      component: FindPwd,
+      meta: {
+        title: "找回密码"
       }
     }
   ]
