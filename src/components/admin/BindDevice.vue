@@ -19,8 +19,12 @@
 <script>
 export default {
   methods: {
-    okRegisterClick(event) {},
-    okBindClick(event) {}
+    okRegisterClick(event) {
+      this.$router.push("/register");
+    },
+    okBindClick(event) {
+      this.$router.push("/bindadmin");
+    }
   }
 };
 </script>

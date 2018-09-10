@@ -17,11 +17,13 @@ import {
 // import VueClipboard from "vue-clipboard2";
 import axios from "axios";
 import Vuex from "vuex";
+import api from './http/index';
 
 Vue.config.productionTip = false;
 
 Vue.use(YDUI);
 Vue.use(Vuex);
+Vue.use(api);
 // Vue.use(MintUI);
 // Vue.use(VueClipboard);
 
@@ -33,10 +35,10 @@ Vue.prototype.$dialog = {
   loading: Loading
 };
 
-axios.defaults.baseURL = process.env.SERVER_HOST;
-axios.defaults.headers.post["Content-Type"] = "application/json";
-Vue.prototype.$ajax = axios;
-console.log("baseURL:" + axios.defaults.baseURL);
+// axios.defaults.baseURL = process.env.SERVER_HOST;
+// axios.defaults.headers.post["Content-Type"] = "application/json";
+// Vue.prototype.$ajax = axios;
+// console.log("baseURL:" + axios.defaults.baseURL);
 
 //用于微信api请求的axios实例
 var wxaxios = axios.create({
@@ -44,12 +46,16 @@ var wxaxios = axios.create({
 });
 Vue.prototype.$wxajax = wxaxios;
 
+
+
 // Vue.prototype.$VueClipboard = VueClipboard
 
 const store = new Vuex.Store({
   state: {
     openId: "",
-    isAdminBinded: false
+    isAdminBinded: false,
+    token: "",
+    managerId: ""
   },
   mutations: {
     updateOpenId(state, openId) {
@@ -57,6 +63,12 @@ const store = new Vuex.Store({
     },
     updateAdminBindStatus(state, isBinded) {
       state.isAdminBinded = isBinded;
+    },
+    updateToken(state, token) {
+      state.token = token;
+    },
+    updateManagerId(state, managerId) {
+      state.managerId = managerId;
     }
   }
 });

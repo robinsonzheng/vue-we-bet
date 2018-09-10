@@ -17,32 +17,11 @@ export default {
   },
   created() {
     console.log("home page created");
-
-    // // 获取openid
-    // var url =
-    //   "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx1578db3d1b70d661&redirect_uri=http%3A%2F%2Fdev.joylott.net%2Fjkp%2Fgw%2FgetOpenId&response_type=code&scope=snsapi_base&state=123#wechat_redirect";
-    // // this.$root.$wxajax
-    // //   .get(process.env.WX_API_GET_OPENID)
-    // //   .then(function(res) {
-    // //     console.log(res);
-    // //   })
-    // //   .catch(function(err) {
-    // //     console.log(err);
-    // //   });
-    // this.$root.$wxajax
-    //   .get(url)
-    //   .then(function(res) {
-    //     console.log(res);
-    //   })
-    //   .catch(function(err) {
-    //     console.log(err);
-    //   });
-
-    
-
   },
   mounted() {
     console.log("home page mounted");
+    // debugger;
+    console.log(this.$api);
   },
   methods: {
     scanClick() {
