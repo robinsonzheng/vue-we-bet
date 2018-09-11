@@ -35,10 +35,10 @@ Vue.prototype.$dialog = {
   loading: Loading
 };
 
-// axios.defaults.baseURL = process.env.SERVER_HOST;
-// axios.defaults.headers.post["Content-Type"] = "application/json";
-// Vue.prototype.$ajax = axios;
-// console.log("baseURL:" + axios.defaults.baseURL);
+axios.defaults.baseURL = process.env.SERVER_HOST;
+axios.defaults.headers.post["Content-Type"] = "application/json";
+Vue.prototype.$ajax = axios;
+console.log("baseURL:" + axios.defaults.baseURL);
 
 //用于微信api请求的axios实例
 var wxaxios = axios.create({

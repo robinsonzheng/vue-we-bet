@@ -33,8 +33,11 @@ export default {
     //调用微信js api
     getConfig() {
       console.log("getting wx config");
-      let url = location.href.split("#")[0]; //获取锚点之前的链接
-      // url = "http://dev.joylott.net/jkp/server";
+      let url = encodeURIComponent(location.href.split("#")[0]); //获取锚点之前的链接
+      // let url = "http://dev.joylott.net/jkp/gw";
+
+      alert(url);
+
       this.$ajax
         .post("/scan?url=" + url, {
           url: url
@@ -108,39 +111,39 @@ export default {
       redirect_uri +
       "&response_type=code&scope=snsapi_base&state=123#wechat_redirect";
 
-    this.ready = false;
-    if (!this.$store.state.openId) {
-      //检查是否有code参数，如果有，是微信重定向过来的，获取code并向后端请求openId
-      console.log(window.location.search);
-      var code = this.getParamVal(window.location.search, "code") || "";
-      console.log("code:" + code);
-      if (!code) {
-        //第一次需要重定向到微信的链接
-        console.log("重定向到微信授权URL" + url);
-        window.location.href = url;
-      } else {
-        console.log("从微信取到code，请求后台API");
-        var self = this;
-        self.$ajax
-          .post("/getOpenId?code=" + code, {
-            code: code
-          })
-          .then(function(res) {
-            console.log("请求成功");
-            // alert(res);
-            console.log(res);
-            self.$store.commit("updateOpenId", res.openId);
-            self.ready = true;
-          })
-          .catch(function(err) {
-            console.log("请求失败");
-            alert(err);
-          });
-      }
-    } else {
-      console.log("openId:" + this.$store.state.openId);
-      this.ready = true;
-    }
+    this.ready = true; //TODO: 把ready设为false
+    // if (!this.$store.state.openId) {
+    //   //检查是否有code参数，如果有，是微信重定向过来的，获取code并向后端请求openId
+    //   console.log(window.location.search);
+    //   var code = this.getParamVal(window.location.search, "code") || "";
+    //   console.log("code:" + code);
+    //   if (!code) {
+    //     //第一次需要重定向到微信的链接
+    //     console.log("重定向到微信授权URL" + url);
+    //     window.location.href = url;
+    //   } else {
+    //     console.log("从微信取到code，请求后台API");
+    //     var self = this;
+    //     self.$ajax
+    //       .post("/getOpenId?code=" + code, {
+    //         code: code
+    //       })
+    //       .then(function(res) {
+    //         console.log("请求成功");
+    //         // alert(res);
+    //         console.log(res);
+    //         self.$store.commit("updateOpenId", res.openId);
+    //         self.ready = true;
+    //       })
+    //       .catch(function(err) {
+    //         console.log("请求失败");
+    //         alert(err);
+    //       });
+    //   }
+    // } else {
+    //   console.log("openId:" + this.$store.state.openId);
+    //   this.ready = true;
+    // }
   },
   mounted() {
     this.$nextTick(function() {
