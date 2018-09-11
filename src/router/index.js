@@ -13,6 +13,9 @@ import FindPwd from "@/components/admin/FindPwd";
 import Register from "@/components/admin/Register";
 import BindAdmin from "@/components/admin/BindAdmin";
 import System from "@/components/admin/System";
+import Location from "@/components/admin/Location";
+import NewLocation from "@/components/admin/NewLocation";
+import ResetPwd from "@/components/admin/ResetPwd";
 
 Vue.use(Router);
 
@@ -107,6 +110,14 @@ export default new Router({
       }
     },
     {
+      path: "/resetpwd",
+      name: "ResetPwd",
+      component: ResetPwd,
+      meta: {
+        title: "重设密码"
+      }
+    },
+    {
       path: "/findpwd",
       name: "FindPwd",
       component: FindPwd,
@@ -114,6 +125,7 @@ export default new Router({
         title: "找回密码"
       }
     },
+
     {
       path: "/system",
       name: "System",
@@ -121,7 +133,22 @@ export default new Router({
       meta: {
         title: "系统设置"
       }
+    },
+    {
+      path: "/location",
+      name: "Location",
+      component: Location,
+      meta: {
+        title: "设备地址"
+      }
+    },
+    {
+      path: "/newlocation",
+      name: "NewLocation",
+      component: NewLocation,
+      meta: {
+        title: "修改地址"
+      }
     }
-
   ]
 });

@@ -74,12 +74,12 @@ export default {
           "getBrandWCPayRequest",
           {
             appId: "wx1578db3d1b70d661", //公众号名称，由商户传入
-            timeStamp: "1536571457157", //时间戳，自1970年以来的秒数
-            nonceStr: "c60f71d827c644f3911bb463f0a677f7", //随机串
-            package: "wx1017241670684999f638e3612499027556",
+            timeStamp: "1536650319892", //时间戳，自1970年以来的秒数
+            nonceStr: "ecba022a54094f55bb09b96ff499ff98", //随机串
+            package: "wx1115183841078699f638e3611861205894",
             signType: "HMAC-SHA256", //微信签名方式：
             paySign:
-              "30A83850A93D25E182275C7334400AA959DC3ABE8496182EC5B28EC7486BAB37" //微信签名
+              "2AA49DF904AD4B1ED32EEBD7F2022696646D75DA1AC270B7FB4BFFB6299FB5D8" //微信签名
           },
           function(res) {
             console.log("微信支付返回：" + res.errMsg);

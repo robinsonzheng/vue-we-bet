@@ -4,7 +4,12 @@
             <yd-cell-item arrow>
                 <span slot="left">修改地址:</span>
                 <input slot="right" type="text" @click.stop="show = true" v-model="location" readonly placeholder="请选择区域">
-            </yd-cell-item>    
+            </yd-cell-item>            
+            <yd-cell-item>
+                <yd-textarea slot="right" placeholder="请输入详细街道、门牌号等" maxlength="100" 
+                  style="border-color:#888;border-style:solid;border-width:1px;padding:10px;">
+                </yd-textarea>
+            </yd-cell-item>
             <yd-cityselect v-model="show" :callback="getResult" :items="district"></yd-cityselect>     
         </yd-cell-group>                
         <div class="center-holder">
