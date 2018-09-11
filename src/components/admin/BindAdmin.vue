@@ -42,7 +42,6 @@ export default {
     sendVerifyCode() {
       //调用发送验证码api
       var reg = 11 && /^((13|14|15|17|18)[0-9]{1}\d{8})$/;
-      //var url="/nptOfficialWebsite/apply/sendSms?mobile="+this.ruleForm.phone;
       if (this.mobile == "") {
         this.$dialog.toast({
           mes: "请输入手机号码",
@@ -58,31 +57,36 @@ export default {
         });
         this.$refs.mobile.setFocus();
       } else {
-        this.$dialog.loading.open("发送中...");
-        var self = this;
-        setTimeout(() => {
-          this.start = true;
-          //发送验证码
-          this.$ajax
-            .post("/api", {
-              apiCode: 110204,
-              content: {
-                mobile: self.mobile,
-                type: "SMS_JKP"
-              }
-            })
-            .then(res => {
-              this.$dialog.loading.close();
-              this.$dialog.toast({
-                mes: "已发送",
-                icon: "success",
-                timeout: 1000
-              });
-            })
-            .catch(err => {
-              this.$dialog.loading.close();
-            });
-        }, 1000);
+
+        this.$api.sendVerifyCode();
+        
+        // this.$dialog.loading.open("发送中...");
+        // var self = this;
+        // setTimeout(() => {
+        //   this.start = true;
+        //   //发送验证码
+        //   this.$ajax
+        //     .post("/api", {
+        //       apiCode: 110204,
+        //       content: {
+        //         mobile: self.mobile,
+        //         type: "SMS_JKP"
+        //       }
+        //     })
+        //     .then(res => {
+        //       this.$dialog.loading.close();
+        //       this.$dialog.toast({
+        //         mes: "已发送",
+        //         icon: "success",
+        //         timeout: 1000
+        //       });
+        //     })
+        //     .catch(err => {
+        //       this.$dialog.loading.close();
+        //     });
+        // }, 1000);
+
+
       }
     },
     okClick() {
@@ -100,7 +104,7 @@ export default {
         return;
       }
 
-      //注册
+      //绑定管理员
       self.$dialog.loading.open("绑定管理员...");
 
       self.$ajax
@@ -115,21 +119,32 @@ export default {
         })
         .then(res => {
           self.$dialog.loading.close();
-          this.$dialog.toast({
-            mes: "绑定成功",
-            icon: "success",
-            timeout: 1000
-          });
-          setTimeout(() => {
-            self.$router.go(-1);
-          }, 1000);
+          if (res.resCode === 0) {
+            //更新管理员信息
+            self.$store.commit("updateToken", res.token);
+            self.$store.commit("updateManagerId", res.managerId);
+
+            self.$dialog.toast({
+              mes: "绑定成功",
+              icon: "success",
+              timeout: 1000
+            });
+            setTimeout(() => {
+              self.$router.go(-1);
+            }, 1000);
+          } else {
+            self.$dialog.toast({
+              mes: "绑定失败，请重试",
+              icon: "error",
+              timeout: 1000
+            });
+          }
         })
         .catch(err => {
           console.log(err);
           self.$dialog.loading.close();
           self.$dialog.alert({ mes: "绑定失败，请重试" });
           //TODO:获取错误代码并作相应处理
-
         });
     },
     cancelClick() {

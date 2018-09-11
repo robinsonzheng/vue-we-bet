@@ -22,13 +22,13 @@ export default {
   },
   methods: {
     okClick() {
-      var self = this;      
+      var self = this;
       //验证密码
       if (this.pwd === "") {
         this.$dialog.alert({ mes: "请输入密码" });
         this.$refs.pwd.setFocus();
         return;
-      }      
+      }
 
       //管理员登录
       this.$ajax
@@ -39,24 +39,28 @@ export default {
             password: this.pwd
           }
         })
-        .then(res=> {
+        .then(res => {
           if (res.resCode === 0) {
             //登录成功
+            //更新管理员信息
+            self.$store.commit("updateToken", res.token);
+            self.$store.commit("updateManagerId", res.managerId);
+
             self.$dialog.toast({
               mes: "登录成功",
               icon: "success",
               timeout: 1000
             });
-            //TODO：记录管理员信息到cookie
-            self.$store.state.token = res.content.token;
-            self.$store.state.managerId = res.content.managerId;
+
+            //TODO：登录成功后跳转到
+
 
           } else {
             //失败
             self.$dialog.alert({ mes: "登录失败，请重试" });
           }
         })
-        .catch(err=>{
+        .catch(err => {
           //失败
           self.$dialog.alert({ mes: err });
         });

@@ -42,7 +42,11 @@ export default {
 
     if (typeof WeixinJSBridge == "undefined") {
       if (document.addEventListener) {
-        document.addEventListener("WeixinJSBridgeReady", this.onBridgeReady, false);
+        document.addEventListener(
+          "WeixinJSBridgeReady",
+          this.onBridgeReady,
+          false
+        );
       } else if (document.attachEvent) {
         document.attachEvent("WeixinJSBridgeReady", this.onBridgeReady);
         document.attachEvent("onWeixinJSBridgeReady", this.onBridgeReady);
@@ -53,6 +57,8 @@ export default {
   },
   mounted() {
     console.log("home page mounted");
+    // debugger;
+    console.log(this.$api);
   },
   methods: {
     scanClick() {

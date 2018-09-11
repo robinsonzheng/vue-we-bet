@@ -92,6 +92,9 @@ export default {
     },
     okClick() {
       var self = this;
+
+      
+
       //验证验证码
       if (this.verifyCode === "") {
         this.$dialog.alert({ mes: "请输入验证码" });
@@ -148,9 +151,18 @@ export default {
                 })
                 .then(res => {
                   self.$dialog.loading.close();
-                  setTimeout(() => {
-                    self.$router.go(-1);
-                  }, 1000);
+                  if (res.resCode === 0) {
+                    //更新管理员信息
+                    self.$store.commit("updateToken", res.token);
+                    self.$store.commit("updateManagerId", res.managerId);
+
+                    setTimeout(() => {
+                      self.$router.go(-1);
+                    }, 1000);
+                  } else {
+                    self.$dialog.alert({ mes: "绑定失败，请重试" });
+                    self.$router.push("/bindadmin"); //跳到绑定页面
+                  }
                 })
                 .catch(err => {
                   console.log(err);

@@ -22,11 +22,13 @@ import Vuex from "vuex";
 // import "assets/star.png"
 // import "assets/location.png"
 // import "assets/stock.png"
+import api from './http/index';
 
 Vue.config.productionTip = false;
 
 Vue.use(YDUI);
 Vue.use(Vuex);
+Vue.use(api);
 // Vue.use(MintUI);
 // Vue.use(VueClipboard);
 
@@ -49,12 +51,16 @@ var wxaxios = axios.create({
 });
 Vue.prototype.$wxajax = wxaxios;
 
+
+
 // Vue.prototype.$VueClipboard = VueClipboard
 
 const store = new Vuex.Store({
   state: {
     openId: "",
-    isAdminBinded: false
+    isAdminBinded: false,
+    token: "",
+    managerId: ""
   },
   mutations: {
     updateOpenId(state, openId) {
@@ -62,6 +68,12 @@ const store = new Vuex.Store({
     },
     updateAdminBindStatus(state, isBinded) {
       state.isAdminBinded = isBinded;
+    },
+    updateToken(state, token) {
+      state.token = token;
+    },
+    updateManagerId(state, managerId) {
+      state.managerId = managerId;
     }
   }
 });
