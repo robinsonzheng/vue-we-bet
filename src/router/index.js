@@ -16,6 +16,7 @@ import System from "@/components/admin/System";
 import Location from "@/components/admin/Location";
 import NewLocation from "@/components/admin/NewLocation";
 import ResetPwd from "@/components/admin/ResetPwd";
+import Login from "@/components/admin/Login";
 
 Vue.use(Router);
 
@@ -148,6 +149,14 @@ export default new Router({
       component: NewLocation,
       meta: {
         title: "修改地址"
+      }
+    },
+    {
+      path: "/login",
+      name: "Login",
+      component: Login,
+      meta: {
+        title: "管理员登录"
       }
     }
   ]

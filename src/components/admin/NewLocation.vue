@@ -42,19 +42,5 @@ export default {
 </script>
 
 <style scoped>
-.content {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  background-color: white;
-}
-.content .center-holder {
-  justify-content: center; /*子元素水平居中*/
-  align-items: center; /*子元素垂直居中*/
-  display: -webkit-flex;
-}
-.content .center-holder .yd-btn {
-  width: 60px;
-  margin: 10px;
-}
+
 </style>

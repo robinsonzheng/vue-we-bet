@@ -14,7 +14,7 @@
 export default {
   methods: {
     okClick() {
-      this.$router.go(-1);
+      this.$router.replace("/bind");
     }
   }
 };
@@ -23,8 +23,6 @@ export default {
 
 <style scoped>
 .content {
-  width: 100%;
-  height: 100%;
   padding: 30px;
 }
 .content .desc {

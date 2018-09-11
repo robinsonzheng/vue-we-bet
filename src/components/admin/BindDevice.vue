@@ -20,10 +20,10 @@
 export default {
   methods: {
     okRegisterClick(event) {
-      this.$router.push("/register");
+      this.$router.replace("/register");
     },
     okBindClick(event) {
-      this.$router.push("/bindadmin");
+      this.$router.replace("/bindadmin");
     }
   }
 };
@@ -32,8 +32,6 @@ export default {
 
 <style scoped>
 .content {
-  width: 100%;
-  height: 100%;
   padding: 30px;
 }
 .content .desc {

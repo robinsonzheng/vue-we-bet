@@ -62,10 +62,10 @@ export default {
   },
   methods: {
     scanClick() {
-      this.$router.push("/scan");
+      this.$router.replace("/scan");
     },
     helpClick() {
-      this.$router.push("/help");
+      this.$router.replace("/help");
     },
     payClick() {
       if (this.wxJSBridgeReady) {

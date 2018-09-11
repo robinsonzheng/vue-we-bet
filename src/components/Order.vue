@@ -209,7 +209,7 @@ export default {
       //TODO: 微信支付
     },
     bindClick(event) {
-      this.$router.push(this.$store.state.isAdminBinded ? '/bindins' : '/bind');
+      this.$router.replace(this.$store.state.isAdminBinded ? '/login' : '/bindins');
     }
   }
 };

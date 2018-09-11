@@ -93,23 +93,51 @@ export default {
     okClick() {
       var self = this;
 
-      
+      if (this.mobile == "") {
+        this.$dialog.toast({
+          mes: "请输入手机号码",
+          icon: "error",
+          timeout: 1000
+        });
+        this.$refs.mobile.setFocus();
+        return;
+      } else if (!reg.test(this.mobile)) {
+        this.$dialog.toast({
+          mes: "手机格式不正确",
+          icon: "error",
+          timeout: 1000
+        });
+        this.$refs.mobile.setFocus();
+        return;
+      }
 
       //验证验证码
       if (this.verifyCode === "") {
-        this.$dialog.alert({ mes: "请输入验证码" });
+        this.$dialog.toast({
+          mes: "请输入验证码",
+          icon: "error",
+          timeout: 1000
+        });
         this.$refs.verifyCode.setFocus();
         return;
       }
       //验证密码
       if (this.pwd === "") {
-        this.$dialog.alert({ mes: "请输入密码" });
+        this.$dialog.toast({
+          mes: "请输入密码",
+          icon: "error",
+          timeout: 1000
+        });
         this.$refs.pwd.setFocus();
         return;
       }
       var reg = /^[\w]{6,15}$/;
       if (!reg.test(this.pwd)) {
-        this.$dialog.alert({ mes: "密码至少6位,只支持数字、字母、下划线" });
+        this.$dialog.toast({
+          mes: "密码至少6位,只支持数字、字母、下划线",
+          icon: "error",
+          timeout: 1000
+        });
         this.$refs.pwd.setFocus();
         return;
       }
@@ -160,25 +188,41 @@ export default {
                       self.$router.go(-1);
                     }, 1000);
                   } else {
-                    self.$dialog.alert({ mes: "绑定失败，请重试" });
-                    self.$router.push("/bindadmin"); //跳到绑定页面
+                    self.$dialog.toast({
+                      mes: "绑定失败，请重试",
+                      icon: "error",
+                      timeout: 1000
+                    });
+                    self.$router.replace("/bindadmin"); //跳到绑定页面
                   }
                 })
                 .catch(err => {
                   console.log(err);
-                  self.$dialog.loading.close();
-                  self.$dialog.alert({ mes: "注册失败，请重试" });
+
+                  self.$dialog.toast({
+                    mes: "注册失败，请重试",
+                    icon: "error",
+                    timeout: 1000
+                  });
                 });
             }, 1000);
           } else {
             //失败
-            self.$dialog.alert({ mes: "注册失败，请重试" });
+            self.$dialog.toast({
+              mes: "注册失败，请重试",
+              icon: "error",
+              timeout: 1000
+            });
           }
         })
         .catch(err => {
           //失败
           self.$dialog.loading.close();
-          self.$dialog.alert({ mes: err });
+          self.$dialog.toast({
+            mes: err,
+            icon: "error",
+            timeout: 1000
+          });
         });
     },
     cancelClick() {
@@ -189,19 +233,4 @@ export default {
 </script>
 
 <style scoped>
-.content {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  background-color: white;
-}
-.content .center-holder {
-  justify-content: center; /*子元素水平居中*/
-  align-items: center; /*子元素垂直居中*/
-  display: -webkit-flex;
-}
-.content .center-holder .yd-btn {
-  width: 60px;
-  margin: 10px;
-}
 </style>
