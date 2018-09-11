@@ -12,6 +12,7 @@ import BindDevice from "@/components/BindDevice";
 import FindPwd from "@/components/admin/FindPwd";
 import Register from "@/components/admin/Register";
 import BindAdmin from "@/components/admin/BindAdmin";
+import System from "@/components/admin/System";
 
 Vue.use(Router);
 
@@ -112,6 +113,15 @@ export default new Router({
       meta: {
         title: "找回密码"
       }
+    },
+    {
+      path: "/system",
+      name: "System",
+      component: System,
+      meta: {
+        title: "系统设置"
+      }
     }
+
   ]
 });

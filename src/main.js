@@ -17,6 +17,11 @@ import {
 // import VueClipboard from "vue-clipboard2";
 import axios from "axios";
 import Vuex from "vuex";
+// import "assets/unlock.png"
+// import "assets/copy.png"
+// import "assets/star.png"
+// import "assets/location.png"
+// import "assets/stock.png"
 
 Vue.config.productionTip = false;
 
