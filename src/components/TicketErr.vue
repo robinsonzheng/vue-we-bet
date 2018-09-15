@@ -7,15 +7,15 @@
                     <yd-flexbox-item>
                         <div class="holder">
                             <div style="height:60px;line-height:60px;text-align:right;padding-right:20px;">
-                                <yd-icon name="warn-outline" slot="icon" style="height:50px;font-size: 2.5rem;color:rgb(255, 104, 93)"></yd-icon>
+                                <yd-icon name="warn-outline" slot="icon" style="height:50px;font-size: .5rem;color:rgb(255, 104, 93)"></yd-icon>
                             </div>
                             <p class="title"><span>出票失败</span></p>  
                         </div>
                     </yd-flexbox-item>
                     <yd-flexbox-item>
                         <div class="holder">
-                            <span style="font-size:.85rem;">设备编号: {{this.serialNo}}</span>
-                            <yd-icon name="feedback" style="font-size: 1.2rem;margin-left:10px;" @click.native="copyBtnClick"></yd-icon>
+                            <span style="font-size:.5rem;">设备编号: {{this.serialNo}}</span>
+                            <yd-icon name="feedback" style="font-size: .5rem;margin-left:10px;" @click.native="copyBtnClick"></yd-icon>
                         </div>
                     </yd-flexbox-item>
                     <yd-flexbox-item>
@@ -98,14 +98,14 @@ export default {
 .content .desc {
   text-align: left;
   padding: (10px, 0, 0, 10px);
-  font-size: 0.85rem;
+  font-size: .5rem;
 }
 .content .title {
   /* text-align: center; */
   height: 60px;
   line-height: 60px;
   text-align: left;
-  font-size: 1.5rem;
+  font-size: 5rem;
 }
 .content .holder {
   justify-content: center; /*子元素水平居中*/

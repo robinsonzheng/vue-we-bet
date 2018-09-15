@@ -47,98 +47,69 @@ export default {
     sendVerifyCode() {
       //调用发送验证码api
       var reg = 11 && /^((13|14|15|17|18)[0-9]{1}\d{8})$/;
-      //var url="/nptOfficialWebsite/apply/sendSms?mobile="+this.ruleForm.phone;
       if (this.mobile == "") {
-        this.$dialog.toast({
-          mes: "请输入手机号码",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
-      } else if (!reg.test(this.mobile)) {
-        this.$dialog.toast({
-          mes: "手机格式不正确",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
-      } else {
-        this.$dialog.loading.open("发送中...");
-        var self = this;
-        setTimeout(() => {
-          this.start = true;
-          //发送验证码
-          this.$ajax
-            .post("/api", {
-              apiCode: 110204,
-              content: {
-                mobile: self.mobile,
-                type: "SMS_JKP"
-              }
-            })
-            .then(res => {
-              this.$dialog.loading.close();
-              this.$dialog.toast({
-                mes: "已发送",
-                icon: "success",
-                timeout: 1000
-              });
-            })
-            .catch(err => {
-              this.$dialog.loading.close();
-            });
-        }, 1000);
+        this.$dialog.showErrToast("请输入手机号码");
+        return;
       }
+      if (!reg.test(this.mobile)) {
+        this.$dialog.showErrToast("手机格式不正确");
+        return;
+      }
+
+      this.$dialog.loading.open("发送中...");
+      var self = this;
+      setTimeout(() => {
+        this.start = true;
+        //发送验证码
+        this.$ajax
+          .post("/api", {
+            apiCode: 110204,
+            content: {
+              mobile: self.mobile,
+              type: "SMS_JKP"
+            },
+            token: self.$store.state.apiToken,
+            terminalNo: self.$store.state.terminalNo
+          })
+          .then(res => {
+            this.$dialog.loading.close();
+            this.$dialog.showOkToast("已发送");
+          })
+          .catch(err => {
+            this.$dialog.loading.close();
+          });
+      }, 1000);
     },
     okClick() {
       var self = this;
+      //验证姓名
+      if (this.name === "") {
+        this.$dialog.showErrToast("请输入姓名");
+        return;
+      }
 
+      var reg = 11 && /^((13|14|15|17|18)[0-9]{1}\d{8})$/;
       if (this.mobile == "") {
-        this.$dialog.toast({
-          mes: "请输入手机号码",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
+        this.$dialog.showErrToast("请输入手机号码");
         return;
       } else if (!reg.test(this.mobile)) {
-        this.$dialog.toast({
-          mes: "手机格式不正确",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
+        this.$dialog.showErrToast("手机格式不正确");
         return;
       }
 
       //验证验证码
       if (this.verifyCode === "") {
-        this.$dialog.toast({
-          mes: "请输入验证码",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.verifyCode.setFocus();
+        this.$dialog.showErrToast("请输入验证码");
         return;
       }
       //验证密码
       if (this.pwd === "") {
-        this.$dialog.toast({
-          mes: "请输入密码",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.pwd.setFocus();
+        this.$dialog.showErrToast("请输入密码");
         return;
       }
       var reg = /^[\w]{6,15}$/;
       if (!reg.test(this.pwd)) {
-        this.$dialog.toast({
-          mes: "密码至少6位,只支持数字、字母、下划线",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.pwd.setFocus();
+        this.$dialog.showErrToast("密码至少6位,只支持数字、字母、下划线");
         return;
       }
 
@@ -148,70 +119,70 @@ export default {
         .post("/api", {
           apiCode: 110205,
           content: {
-            serialCode: 0, //TODO：设备序列号
+            serialCode: self.$store.state.serialCode, //设备序列号
             username: this.mobile,
             realname: this.name,
             password: this.pwd,
             code: this.verifyCode
-          }
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
         })
         .then(res => {
           self.$dialog.loading.close();
-          if (res.resCode === 0) {
+          if (res.data.resCode == 0) {
             //注册成功
-            self.$dialog.toast({
-              mes: "注册成功",
-              icon: "success",
-              timeout: 1000
-            });
+            self.$dialog.showOkToast("注册成功");
+            // setTimeout(() => {
+            //   //绑定管理员
+            //   self.$dialog.loading.open("绑定管理员...");
+            //   self.$ajax
+            //     .post("/api", {
+            //       apiCode: 110207,
+            //       content: {
+            //         serialCode: self.$store.state.serialCode, //设备序列号
+            //         username: this.mobile,
+            //         password: this.pwd,
+            //         code: this.verifyCode
+            //       },
+            //       token: self.$store.state.apiToken,
+            //       terminalNo: self.$store.state.terminalNo
+            //     })
+            //     .then(res => {
+            //       self.$dialog.loading.close();
+            //       if (res.data.resCode == 0) {
+            //         //更新管理员信息
+            //         self.$store.commit("updateToken", res.data.token);
+            //         self.$store.commit("updateManagerId", res.data.managerId);
+
+            //         setTimeout(() => {
+            //           self.$router.go(-1);
+            //         }, 1000);
+            //       } else {
+            //         this.$dialog.showErrToast(res.data.resMsg);
+            //         self.$router.replace("bindamin"); //跳到绑定页面
+            //       }
+            //     })
+            //     .catch(err => {
+            //       console.log(err);
+            //       self.$dialog.toast({
+            //         mes: "网络不给力~",
+            //         icon: "error",
+            //         timeout: 2000
+            //       });
+            //     });
+            // }, 1000);
+
+            //跳转到系统设置页面
             setTimeout(() => {
-              //绑定管理员
-              self.$dialog.loading.open("绑定管理员...");
-              self.$ajax
-                .post("/api", {
-                  apiCode: 110207,
-                  content: {
-                    serialCode: 0, //TODO：设备序列号
-                    username: this.mobile,
-                    password: this.pwd,
-                    code: this.verifyCode
-                  }
-                })
-                .then(res => {
-                  self.$dialog.loading.close();
-                  if (res.resCode === 0) {
-                    //更新管理员信息
-                    self.$store.commit("updateToken", res.token);
-                    self.$store.commit("updateManagerId", res.managerId);
-
-                    setTimeout(() => {
-                      self.$router.go(-1);
-                    }, 1000);
-                  } else {
-                    self.$dialog.toast({
-                      mes: "绑定失败，请重试",
-                      icon: "error",
-                      timeout: 1000
-                    });
-                    self.$router.replace("/bindadmin"); //跳到绑定页面
-                  }
-                })
-                .catch(err => {
-                  console.log(err);
-
-                  self.$dialog.toast({
-                    mes: "注册失败，请重试",
-                    icon: "error",
-                    timeout: 1000
-                  });
-                });
-            }, 1000);
+              self.$router.replace("/system");
+            }, 3000);
           } else {
             //失败
             self.$dialog.toast({
-              mes: "注册失败，请重试",
+              mes: res.data.resMsg,
               icon: "error",
-              timeout: 1000
+              timeout: 2000
             });
           }
         })
@@ -219,14 +190,14 @@ export default {
           //失败
           self.$dialog.loading.close();
           self.$dialog.toast({
-            mes: err,
+            mes: "网络不给力~",
             icon: "error",
-            timeout: 1000
+            timeout: 2000
           });
         });
     },
     cancelClick() {
-      this.$router.go(-1);
+      this.$router.replace("/order");
     }
   }
 };

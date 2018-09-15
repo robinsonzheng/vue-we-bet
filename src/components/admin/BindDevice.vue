@@ -37,7 +37,7 @@ export default {
 .content .desc {
   text-align: left;
   padding: 10px;
-  font-size: 0.85rem;
+  font-size: .5rem;
 }
 /* .content .title {
   text-align: center;

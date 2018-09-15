@@ -1,13 +1,17 @@
 <template>
     <div class="content">
-        <yd-cell-group style="margin:0px">
+        <yd-cell-group>
+          <yd-cell-item>
+                <span slot="left">用户名:</span>
+                <yd-input slot="right" v-model="userName" ref="userName" required placeholder="" />
+            </yd-cell-item> 
             <yd-cell-item>
-                <span slot="left">请输入管理员密码:</span>
-                <yd-input slot="right" v-model="pwd" ref="pwd" regex="^[\w]{6,15}$" required type="password" placeholder="密码" />
+                <span slot="left">密码:</span>
+                <yd-input slot="right" v-model="pwd" ref="pwd" regex="^[\w]{6,15}$" required type="password" placeholder="" />
             </yd-cell-item>                
         </yd-cell-group>                
         <div class="center-holder">
-            <yd-button type="hollow" @click.native="okClick">确定</yd-button>
+            <yd-button type="hollow" @click.native="okClick">登录</yd-button>
             <yd-button type="hollow" @click.native="cancelClick">取消</yd-button>                     
         </div>
     </div>
@@ -17,12 +21,20 @@
 export default {
   data() {
     return {
+      userName: "",
       pwd: ""
     };
   },
   methods: {
     okClick() {
       var self = this;
+
+      if (this.userName === "") {
+        this.$dialog.alert({ mes: "请输入用户名" });
+        this.$refs.userName.setFocus();
+        return;
+      }
+
       //验证密码
       if (this.pwd === "") {
         this.$dialog.alert({ mes: "请输入密码" });
@@ -31,19 +43,22 @@ export default {
       }
 
       //管理员登录
+      this.$dialog.loading.open("登录中...");
       this.$ajax
         .post("/api", {
           apiCode: 110201,
           content: {
-            username: this.$router.params.username,
+            username: this.userName, //TODO:使用接口返回的管理员用户名
             password: this.pwd
           }
         })
         .then(res => {
-          if (res.resCode === 0) {
+          self.$dialog.loading.close();
+          if (res.data.resCode == 0) {
             //登录成功
             //更新管理员信息
-            self.$store.commit("updateToken", res.token);
+            debugger;
+            self.$store.commit("updateManagerToken", res.token);
             self.$store.commit("updateManagerId", res.managerId);
 
             self.$dialog.toast({
@@ -52,16 +67,17 @@ export default {
               timeout: 1000
             });
 
-            //TODO：登录成功后跳转到
-
+            //登录成功后跳转到系统设置页面
+            self.$router.replace("/system");
 
           } else {
             //失败
-            self.$dialog.alert({ mes: "登录失败，请重试" });
+            self.$dialog.alert({ mes: "登录失败，请检查用户名、密码" });
           }
         })
         .catch(err => {
           //失败
+          self.$dialog.loading.close();
           self.$dialog.alert({ mes: err });
         });
     },
@@ -73,5 +89,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

@@ -17,6 +17,8 @@ import Location from "@/components/admin/Location";
 import NewLocation from "@/components/admin/NewLocation";
 import ResetPwd from "@/components/admin/ResetPwd";
 import Login from "@/components/admin/Login";
+import Stock from "@/components/admin/Stock";
+import EditStock from "@/components/admin/EditStock";
 
 Vue.use(Router);
 
@@ -157,6 +159,22 @@ export default new Router({
       component: Login,
       meta: {
         title: "管理员登录"
+      }
+    },
+    {
+      path: "/stock",
+      name: "Stock",
+      component: Stock,
+      meta: {
+        title: "库存信息"
+      }
+    },
+    {
+      path: "/editstock",
+      name: "EditStock",
+      component: EditStock,
+      meta: {
+        title: "编辑库存"
       }
     }
   ]

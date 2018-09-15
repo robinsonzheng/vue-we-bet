@@ -77,7 +77,7 @@ export default {
         /* text-align: center; */
         height: 60px;
         line-height: 60px;
-        text-align:left;font-size:1.5rem
+        text-align:left;font-size:.5rem
     }
     .content .holder {
         justify-content:center;/*子元素水平居中*/

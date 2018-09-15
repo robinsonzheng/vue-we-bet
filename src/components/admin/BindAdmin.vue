@@ -40,67 +40,60 @@ export default {
   },
   methods: {
     sendVerifyCode() {
-      //调用发送验证码api
       var reg = 11 && /^((13|14|15|17|18)[0-9]{1}\d{8})$/;
       if (this.mobile == "") {
-        this.$dialog.toast({
-          mes: "请输入手机号码",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
-      } else if (!reg.test(this.mobile)) {
-        this.$dialog.toast({
-          mes: "手机格式不正确",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
-      } else {
-
-        this.$api.sendVerifyCode();
-        
-        // this.$dialog.loading.open("发送中...");
-        // var self = this;
-        // setTimeout(() => {
-        //   this.start = true;
-        //   //发送验证码
-        //   this.$ajax
-        //     .post("/api", {
-        //       apiCode: 110204,
-        //       content: {
-        //         mobile: self.mobile,
-        //         type: "SMS_JKP"
-        //       }
-        //     })
-        //     .then(res => {
-        //       this.$dialog.loading.close();
-        //       this.$dialog.toast({
-        //         mes: "已发送",
-        //         icon: "success",
-        //         timeout: 1000
-        //       });
-        //     })
-        //     .catch(err => {
-        //       this.$dialog.loading.close();
-        //     });
-        // }, 1000);
-
-
+        this.$dialog.showErrToast("请输入手机号码");
+        return;
       }
+      if (!reg.test(this.mobile)) {
+        this.$dialog.showErrToast("手机格式不正确");
+        return;
+      }
+
+      this.$dialog.loading.open("发送中...");
+      var self = this;
+      setTimeout(() => {
+        this.start = true;
+        //发送验证码
+        this.$ajax
+          .post("/api", {
+            apiCode: 110204,
+            content: {
+              mobile: self.mobile,
+              type: "SMS_JKP"
+            },
+            token: self.$store.state.apiToken,
+            terminalNo: self.$store.state.terminalNo
+          })
+          .then(res => {
+            this.$dialog.loading.close();
+            this.$dialog.showOkToast("已发送");
+          })
+          .catch(err => {
+            this.$dialog.loading.close();
+          });
+      }, 1000);
     },
     okClick() {
       var self = this;
+
+      var reg = 11 && /^((13|14|15|17|18)[0-9]{1}\d{8})$/;
+      if (this.mobile == "") {
+        this.$dialog.showErrToast("请输入手机号码");
+        return;
+      } else if (!reg.test(this.mobile)) {
+        this.$dialog.showErrToast("手机格式不正确");
+        return;
+      }
+
       //验证验证码
       if (this.verifyCode === "") {
-        this.$dialog.alert({ mes: "请输入验证码" });
-        this.$refs.verifyCode.setFocus();
+        this.$dialog.showErrToast("请输入验证码");
         return;
       }
       //验证密码
       if (this.pwd === "") {
-        this.$dialog.alert({ mes: "请输入密码" });
-        this.$refs.pwd.setFocus();
+        this.$dialog.showErrToast("请输入密码");
         return;
       }
 
@@ -111,11 +104,13 @@ export default {
         .post("/api", {
           apiCode: 110207,
           content: {
-            serialCode: 0, //TODO：设备序列号
+            serialCode: self.$store.state.serialCode, //设备序列号
             username: this.mobile,
             password: this.pwd,
             code: this.verifyCode
-          }
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
         })
         .then(res => {
           self.$dialog.loading.close();
@@ -124,20 +119,12 @@ export default {
             self.$store.commit("updateToken", res.token);
             self.$store.commit("updateManagerId", res.managerId);
 
-            self.$dialog.toast({
-              mes: "绑定成功",
-              icon: "success",
-              timeout: 1000
-            });
+            this.$dialog.showOkToast("绑定成功");
             setTimeout(() => {
-              self.$router.go(-1);
+              self.$router.replace("/system"); //跳转到系统设置页面
             }, 1000);
           } else {
-            self.$dialog.toast({
-              mes: "绑定失败，请重试",
-              icon: "error",
-              timeout: 1000
-            });
+            this.$dialog.showErrToast(res.data.resMsg);
           }
         })
         .catch(err => {
@@ -155,5 +142,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

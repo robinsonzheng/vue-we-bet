@@ -3,7 +3,7 @@
       <yd-button-group>                     
         <yd-button size="large" type="danger" @click.native="scanClick">扫码</yd-button>
         <yd-button size="large" type="primary" @click.native="helpClick">帮助</yd-button>
-        <yd-button size="large" type="hollow" @click.native="payClick">支付测试</yd-button>
+        <!-- <yd-button size="large" type="hollow" @click.native="payClick">支付测试</yd-button> -->
       </yd-button-group>
 	</div>
 </template>
@@ -18,47 +18,95 @@ export default {
     };
   },
   created() {
-    console.log("home page created");
+    console.log("home page created");    
+    let ua = window.navigator.userAgent.toLowerCase();
+    if (ua.match(/MicroMessenger/i) == "micromessenger") {
+      // 跳转到微信授权页面
+      var redirect_uri = location.href.split("#")[0];
+      // redirect_uri = redirect_uri.replace(
+      //   "localhost:8080",
+      //   "dev.joylott.net/jkp/gw"
+      // );
+      redirect_uri = encodeURIComponent(redirect_uri);
+      // 获取openid
+      var url =
+        "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx1578db3d1b70d661&redirect_uri=" +
+        redirect_uri +
+        "&response_type=code&scope=snsapi_base&state=123#wechat_redirect";
 
-    // // 获取openid
-    // var url =
-    //   "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx1578db3d1b70d661&redirect_uri=http%3A%2F%2Fdev.joylott.net%2Fjkp%2Fgw%2FgetOpenId&response_type=code&scope=snsapi_base&state=123#wechat_redirect";
-    // // this.$root.$wxajax
-    // //   .get(process.env.WX_API_GET_OPENID)
-    // //   .then(function(res) {
-    // //     console.log(res);
-    // //   })
-    // //   .catch(function(err) {
-    // //     console.log(err);
-    // //   });
-    // this.$root.$wxajax
-    //   .get(url)
-    //   .then(function(res) {
-    //     console.log(res);
-    //   })
-    //   .catch(function(err) {
-    //     console.log(err);
-    //   });
+      var openId = this.$cookie.get("openId");
+      if (!openId) {
+        //检查是否有code参数，如果有，是微信重定向过来的，获取code并向后端请求openId
+        console.log(window.location.search);
+        var code = this.$util.getParamVal(window.location.search, "code") || "";
+        console.log("code:" + code);
+        if (!code) {
+          //第一次需要重定向到微信的链接
+          console.log("重定向到微信授权URL" + url);
 
-    if (typeof WeixinJSBridge == "undefined") {
-      if (document.addEventListener) {
-        document.addEventListener(
-          "WeixinJSBridgeReady",
-          this.onBridgeReady,
-          false
-        );
-      } else if (document.attachEvent) {
-        document.attachEvent("WeixinJSBridgeReady", this.onBridgeReady);
-        document.attachEvent("onWeixinJSBridgeReady", this.onBridgeReady);
+          //微信回调
+          window.location.href = url;
+
+          // // debugger;
+          // setTimeout(() => {
+          //   var virUrl = decodeURIComponent(redirect_uri);
+          //   if (virUrl.endsWith("/")) {
+          //     virUrl = virUrl.substring(0, virUrl.length - 1);
+          //   }
+          //   virUrl =
+          //     virUrl +
+          //     (redirect_uri.indexOf("?") >= 0 ? "&" : "?") +
+          //     "code=1234567";
+          //   debugger;
+          //   window.location.href = virUrl;
+          // }, 1500);
+        } else {
+          console.log("从微信取到code，请求后台API");
+          var self = this;
+          self.$ajax
+            .post("/getOpenId?code=" + code, {
+              code: code
+            })
+            .then(function(res) {
+              if (res.status === 200) {
+                console.log("请求成功");
+                // alert(res);
+                console.log(res);
+                self.$cookie.set("openId", res.data.openId);
+                //跳转到原始URL
+                let beforeLoginUrl = self.$cookie.get("beforeLoginUrl");
+                console.log("beforeLoginUrl", beforeLoginUrl);
+                if (beforeLoginUrl) {
+                  self.$cookie.set("beforeLoginUrl", "");
+                  window.location.href = beforeLoginUrl;
+                }
+              } else {
+                console.log("请求失败");
+                alert(res);
+              }
+            })
+            .catch(function(err) {
+              console.log("请求失败");
+              alert(err);
+            });
+
+          // setTimeout(() => {
+          //   self.$cookie.set("openId", "TestOpenId");
+          //   //跳转到原始URL
+          //   let beforeLoginUrl = self.$cookie.get("beforeLoginUrl");
+          //   console.log("beforeLoginUrl", beforeLoginUrl);
+          //   self.$cookie.set("beforeLoginUrl", "");
+          //   debugger;
+          //   if (beforeLoginUrl) {
+          //     window.location.href = beforeLoginUrl;
+          //   }
+          // }, 1000);
+        }
+      } else {
+        console.log("openId:" + openId);
+        debugger;
       }
-    } else {
-      this.onBridgeReady();
     }
-  },
-  mounted() {
-    console.log("home page mounted");
-    // debugger;
-    console.log(this.$api);
   },
   methods: {
     scanClick() {
@@ -66,36 +114,6 @@ export default {
     },
     helpClick() {
       this.$router.replace("/help");
-    },
-    payClick() {
-      if (this.wxJSBridgeReady) {
-        console.log("WeixinJSBridge已准备好，正在发起支付");
-        WeixinJSBridge.invoke(
-          "getBrandWCPayRequest",
-          {
-            appId: "wx1578db3d1b70d661", //公众号名称，由商户传入
-            timeStamp: "1536650319892", //时间戳，自1970年以来的秒数
-            nonceStr: "ecba022a54094f55bb09b96ff499ff98", //随机串
-            package: "wx1115183841078699f638e3611861205894",
-            signType: "HMAC-SHA256", //微信签名方式：
-            paySign:
-              "2AA49DF904AD4B1ED32EEBD7F2022696646D75DA1AC270B7FB4BFFB6299FB5D8" //微信签名
-          },
-          function(res) {
-            console.log("微信支付返回：" + res.errMsg);
-            if (res.errMsg == "get_brand_wcpay_request:ok") {
-              // 使用以上方式判断前端返回,微信团队郑重提示：
-              //res.errMsg将在用户支付成功后返回ok，但并不保证它绝对可靠。
-              console.log("支付成功");
-            }
-          }
-        );
-      } else {
-        console.log("WeixinJSBridge未准备好，无法发起支付");
-      }
-    },
-    onBridgeReady() {
-      this.wxJSBridgeReady = true;
     }
   }
 };
