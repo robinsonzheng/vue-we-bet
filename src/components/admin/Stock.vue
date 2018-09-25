@@ -1,104 +1,158 @@
-<template>
-    <!-- <yd-layout> -->
-        <div v-if="post" class="content">
-            
-            <!-- 游戏详情 -->
-            <yd-flexbox>
-                <yd-flexbox-item>
-                    <div style="padding:20px;">
-                        <img slot="icon" src="http://static.ydcss.com/ydui/img/logo.png" style="width: 100%;height:auto;" />
-                    </div>
-                </yd-flexbox-item>
-                <yd-flexbox-item>
-                    <yd-flexbox direction="vertical">
-                        <yd-flexbox-item>
-                            <yd-cell-item>
-                                <span slot="left">游戏:</span>
-                                <span slot="left" style="margin-left:10px">{{post.game}}</span>
-                            </yd-cell-item>
-                        </yd-flexbox-item>
-                        <yd-flexbox-item>
-                            <yd-cell-item>
-                                <span slot="left">单价:</span>
-                                <span slot="left" style="margin-left:10px">{{post.price}}元</span>
-                            </yd-cell-item>
-                        </yd-flexbox-item>
-                        <yd-flexbox-item>
-                            <yd-cell-item>
-                                <span slot="left">库存:</span>
-                                <span slot="left" style="margin-left:10px">{{post.inventory}}张</span>
-                            </yd-cell-item>
-                        </yd-flexbox-item>
-                    </yd-flexbox>
-                </yd-flexbox-item>
-            </yd-flexbox>
-            <div class="center-holder">
-                <span slot="left">最后变更时间:</span>
-                <span slot="right">{{post.lastModifiedTime}}</span>
-            </div>
-            <div class="center-holder">
-                <yd-button type="hollow" @click.native="okClick">编辑库存</yd-button>
-                <yd-button type="hollow" @click.native="cancelClick">取消</yd-button>                     
-            </div>
-        </div>
-    <!-- </yd-layout> -->
+<template>    
+  <div class="page-wrapper">
+      <div class="content" v-if="error==null">            
+          <!-- 游戏详情 -->
+          <yd-flexbox>
+              <yd-flexbox-item>
+                  <div style="padding:20px;">
+                      <img slot="icon" :src="post.frontIcon" style="width: 100%;height:auto;" />
+                  </div>
+              </yd-flexbox-item>
+              <yd-flexbox-item>
+                  <yd-flexbox direction="vertical">
+                      <yd-flexbox-item>
+                          <yd-cell-item>
+                              <span slot="left">游戏:</span>
+                              <span slot="left" style="margin-left:10px">{{post.ticketName}}</span>
+                          </yd-cell-item>
+                      </yd-flexbox-item>
+                      <yd-flexbox-item>
+                          <yd-cell-item>
+                              <span slot="left">单价:</span>
+                              <span slot="left" style="margin-left:10px">{{post.money}}元</span>
+                          </yd-cell-item>
+                      </yd-flexbox-item>
+                      <yd-flexbox-item>
+                          <yd-cell-item>
+                              <span slot="left">库存:</span>
+                              <span slot="left" style="margin-left:10px">{{post.inventory}}张</span>
+                          </yd-cell-item>
+                      </yd-flexbox-item>
+                  </yd-flexbox>
+              </yd-flexbox-item>
+          </yd-flexbox>
+          <div class="center-holder">
+              <span slot="left">最后变更时间:</span>
+              <span slot="right">{{post.lastModifiedTime}}</span>
+          </div>
+          <div class="center-holder">
+              <yd-button type="hollow" @click.native="okClick">编辑库存</yd-button>
+              <yd-button type="hollow" @click.native="cancelClick">取消</yd-button>                     
+          </div>
+      </div>
+
+      <!-- 错误页面 -->
+      <div v-if="error" class="error">
+          <div>                  
+          </div>          
+          <div class="error-content">
+            <div><span>{{ error.msg }}</span></div>      
+            <div><yd-button type="hollow" @click.native="fetchData">刷新</yd-button></div>
+          </div>
+      </div>
+  </div>
 </template>
 
 <script type="text/babel">
 export default {
   data() {
     return {
-      post: {lastModifiedTime:"2018-09-12 00:00:00"}
+      post: {},
+      error: {}
     };
   },
   created() {
     // 组件创建完后
-    // 获取数据
-    // 此时 data 已经被 observed 了
-    this.fetchData();
+    let ticketInfo = this.$store.state.ticketInfo;
+    if (ticketInfo && ticketInfo.ticketId) {
+      // 获取数据
+      // 此时 data 已经被 observed 了
+      this.fetchData(ticketInfo);
+    } else {
+      this.$router.replace("/order");
+    }
   },
   watch: {
     // 如果路由有变化，会再次执行该方法
     $route: "fetchData"
   },
   methods: {
-    fetchData() {
+    fetchData(ticketInfo) {
+      var self = this;
       this.error = null;
-      this.$root.$dialog.loading.open();
-      // replace getPost with your data fetching util / API wrapper
-      this.getPost(this.$route.params.id, (err, data) => {
-        this.$root.$dialog.loading.close();
-        if (err) {
-          this.error = err.toString();
-        } else {
-          this.$set(this.post, "serialNo", data.serialNo);
-          this.$set(this.post, "game", data.game);
-          this.$set(this.post, "price", data.price);
-          this.$set(this.post, "inventory", data.inventory);
-          this.$set(this.post, "qty", 1);
-          this.$set(this.post, "pic", data.pic);
+      this.$dialog.loading.open("载入中...");
+
+      this.$ajax
+        .post(process.env.SERVER_HOST, {
+          apiCode: 110701,
+          content: {
+            houseId: ticketInfo.houseId,
+            token: self.$store.state.managerToken
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
+        })
+        .then(res => {
+          self.$dialog.loading.close();
+          if (res.data.resCode == 0) {
+            //成功
+            self.$set(self.post, "ticketId", ticketInfo.ticketId);
+            self.$set(self.post, "houseId", ticketInfo.houseId);
+            self.$set(self.post, "ticketName", ticketInfo.ticketName);
+            self.$set(self.post, "money", ticketInfo.money);
+            self.$set(self.post, "frontIcon", ticketInfo.frontIcon);
+
+            if (
+              res.data.content.warehouseInfo &&
+              res.data.content.warehouseInfo.length
+            ) {
+              let warehouseInfo = res.data.content.warehouseInfo[0];
+              self.$set(self.post, "inventory", warehouseInfo.amount);
+              var d = new Date(warehouseInfo.lastUpdate);
+              self.$set(
+                self.post,
+                "lastModifiedTime",
+                self.$util.formatDate(d)
+              );
+            }
+          } else if (
+            res.data.resCode == "23001" ||
+            res.data.resCode == "000802"
+          ) {
+            // TODO: 管理员未登录;
+            self.$router.push({
+              name: "Login",
+              params: { redirect_path: "/stock" }
+            });
+            // alert(res.data.resMsg);
+          } else {
+            //失败，显示错误页面
+            self.error = {
+              msg: res.data.resMsg
+            };
+          }
+        })
+        .catch(err => {
+          //异常
+          self.$dialog.loading.close();
+          self.error = { msg: "出错了,请检查网络~" };
+        });
+    },
+    okClick() {
+      this.$router.replace({
+        name: "EditStock",
+        params: {
+          ticketId: this.post.ticketId,
+          houseId: this.post.houseId,
+          ticketName: this.post.ticketName,
+          money: this.post.money,
+          inventory: this.post.inventory,
+          frontIcon: this.post.frontIcon
         }
       });
     },
-    getPost(id, callback) {
-      //TODO: 调用数据API，包括返回数据以及错误处理
-      setTimeout(() => {
-        //模拟数据加载过程
-        var data = {};
-        data.serialNo = "123456";
-        data.game = "福彩";
-        data.price = 2;
-        data.inventory = 6;
-        data.pic = "http://static.ydcss.com/uploads/ydui/2.jpg";
-        var err = null;
-        callback && callback(err, data);
-      }, 500);
-    },
-    okClick() {
-        this.$router.replace("/editstock");
-    },
     cancelClick() {
-        this.$router.go(-1);
+      this.$router.replace("/system");
     }
   }
 };
@@ -127,10 +181,7 @@ td {
 }
 td button {
   width: 70%;
-  height: 40px;
-}
-.yd-btn {
-  height: 40px;
+  /* height: 40px; */
 }
 .footer {
   width: 100%;
@@ -140,7 +191,7 @@ td button {
   width: 50%;
   height: 45px;
   vertical-align: middle;
-  font-size: .28rem;
+  font-size: 0.28rem;
   color: rgb(229, 28, 35);
   line-height: 45px;
 }
@@ -151,7 +202,7 @@ td button {
   text-align: center;
   height: 40px;
   line-height: 40px;
-  font-size: .5rem;
+  font-size: 0.5rem;
 }
 /* basic style */
 .close {
@@ -164,7 +215,7 @@ td button {
   text-align: center;
   height: 30px;
   width: 30px;
-  font-size: .5rem;
+  font-size: 0.5rem;
   padding: 0px;
 }
 /* use cross as close button */

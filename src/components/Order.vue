@@ -1,7 +1,18 @@
 <template>
-    <yd-layout>
-        
-        <yd-cell-group v-if="error == null" style="margin:0px">
+  <div class="page-wrapper">
+
+    <!-- 错误页面 -->
+    <div v-if="error" class="error">
+      <div>                  
+      </div>          
+      <div class="error-content">
+        <div><span>{{ error.msg }}</span></div>      
+        <div><yd-button type="hollow" @click.native="fetchData">刷新</yd-button></div>
+      </div>
+    </div>
+
+    <yd-layout v-if="error == null">
+        <yd-cell-group  style="margin:0px">
             <yd-cell-item>                
                 <span slot="left">设备编号:{{post.terminalNo}}</span>
                 <div slot="right">
@@ -11,11 +22,6 @@
                 </div>
             </yd-cell-item>
         </yd-cell-group>
-
-        <div v-if="error" class="error">
-            <div>{{ error }}</div>
-            <div><yd-button type="hollow">刷新</yd-button></div>            
-        </div>
 
         <!-- 数量输入弹出框 -->
         <yd-popup v-model="post.showOtherQty" class="popup" :close-on-masker=false position="center" width="80%">
@@ -35,7 +41,7 @@
             </div>
         </yd-popup>
 
-        <div v-if="error == null">
+        <div>
             <!-- 游戏详情 -->
             <yd-flexbox>
                 <yd-flexbox-item>
@@ -86,7 +92,7 @@
 
         </div>
 
-        <yd-tabbar v-if="error == null" slot="tabbar" style="padding:0">
+        <yd-tabbar slot="tabbar" style="padding:0">
             <yd-flexbox class="footer">
                 <yd-flexbox-item>
                     支付金额: {{post.amount}}元
@@ -97,9 +103,8 @@
             </yd-flexbox>
         </yd-tabbar>
 
-
     </yd-layout>
-
+  </div>
 </template>
 
 <script type="text/babel">
@@ -124,10 +129,9 @@ export default {
 
     // 获取数据
     // 此时 data 已经被 observed 了
-    this.fetchData(serialCode);
+    this.fetchData();
 
     // 初始化微信支付组件
-    // debugger;
     if (typeof WeixinJSBridge == "undefined") {
       if (document.addEventListener) {
         document.addEventListener(
@@ -150,11 +154,11 @@ export default {
     "post.tmpQty": "watchTmpQty"
   },
   methods: {
-    fetchData(serialCode) {
+    fetchData() {
       this.error = null;
-      this.$root.$dialog.loading.open();
+      this.$root.$dialog.loading.open("载入中...");
       // replace getPost with your data fetching util / API wrapper
-      this.getPost(serialCode, (err, data) => {
+      this.getPost((err, data) => {
         this.$root.$dialog.loading.close();
         if (err) {
           this.error = err;
@@ -166,11 +170,14 @@ export default {
           //记录票种信息
           this.$store.commit("updateTicketInfo", {
             houseId: houseInfo.houseId,
-            ticketId: houseInfo.ticketId
+            ticketId: houseInfo.ticketId,
+            ticketName: houseInfo.ticketName,
+            money: houseInfo.money,
+            frontIcon: houseInfo.frontIcon
           });
 
           //TODO:删除调试代码
-          data.content.managerId = 0;
+          // data.content.managerId = 1;
 
           //记录管理员ID，终端号码
           this.$store.commit("updateManagerId", data.content.managerId);
@@ -220,13 +227,14 @@ export default {
         this.post.showOtherQty = false;
       }
     },
-    getPost(serialCode, callback) {
+    getPost(callback) {
       //调用数据API，包括返回数据以及错误处理
+      console.log("this.$store.state.serialCode", this.$store.state.serialCode);
       this.$ajax
         .post(process.env.SERVER_HOST, {
           apiCode: 110301,
           content: {
-            serialCode: serialCode
+            serialCode: this.$store.state.serialCode
           }
         })
         .then(res => {
@@ -236,13 +244,12 @@ export default {
           } else {
             //失败
             console.log("res", res);
-            callback && callback(res.data.resMsg, res.data);
+            callback && callback({ msg: res.data.resMsg }, res.data);
           }
         })
         .catch(err => {
           //异常
-          // alert(err);
-          callback && callback(err.toString(), null);
+          callback && callback({ msg: "出错了,请检查网络~" });
         });
     },
     wxPayClick(event) {
@@ -250,7 +257,7 @@ export default {
       this.$dialog.loading.open("生成订单...");
       var self = this;
       this.$ajax
-        .post("/api", {
+        .post(process.env.SERVER_HOST, {
           apiCode: 110401,
           content: {
             openId: self.$cookie.get("openId"), //微信用户的openId
@@ -275,15 +282,22 @@ export default {
             self.$store.commit("updateOrderNo", res.data.content.orderNo);
 
             //发起支付
-            wxPay(
-              res.data.payInfo,
+            self.wxPay(
+              {
+                appId: res.data.content.appId, //公众号名称，由商户传入
+                timeStamp: res.data.content.timeStamp, //时间戳，自1970年以来的秒数
+                nonceStr: res.data.content.nonceStr, //随机串
+                package: res.data.content.package,
+                signType: res.data.content.signType, //微信签名方式：
+                paySign: res.data.content.paySign //微信签名
+              },
               res => {
                 console.log("支付成功");
-                //转到出票页面
-                self.$router.replace("/ticket");
+                //跳转到出票等待页面
+                self.$router.replace({path:"/ticketloading"});
               },
               err => {
-                console.log("支付失败");
+                console.log("支付失败", err);
               }
             );
           } else {
@@ -302,36 +316,32 @@ export default {
     wxPay(payInfo, resorve, reject) {
       if (this.wxJSBridgeReady) {
         console.log("WeixinJSBridge已准备好，正在发起支付");
-        WeixinJSBridge.invoke(
-          "getBrandWCPayRequest",
-          {
-            appId: payInfo.appId, //公众号名称，由商户传入
-            timeStamp: payInfo.timeStamp, //时间戳，自1970年以来的秒数
-            nonceStr: payInfo.nonceStr, //随机串
-            package: payInfo.package,
-            signType: payInfo.signType, //微信签名方式：
-            paySign: payInfo.paySign //微信签名
-          },
-          function(res) {
-            console.log("微信支付返回：" + res.errMsg);
-            if (res.errMsg == "get_brand_wcpay_request:ok") {
-              // 使用以上方式判断前端返回,微信团队郑重提示：
-              //res.errMsg将在用户支付成功后返回ok，但并不保证它绝对可靠。
-              console.log("支付成功");
-              resorve && resorve();
-            }
+        WeixinJSBridge.invoke("getBrandWCPayRequest", payInfo, function(res) {
+          console.log("微信支付返回：" + res.err_msg);
+          // alert("微信支付返回" + res.err_msg);
+          if (res.err_msg == "get_brand_wcpay_request:ok") {
+            // 使用以上方式判断前端返回,微信团队郑重提示：
+            //res.errMsg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+            console.log("支付成功");
+            resorve && resorve();
+          } else {
+            console.log("微信支付失败", res.err_msg);
+            reject && reject(res.err_msg);
           }
-        );
+        });
       } else {
         console.log("WeixinJSBridge未准备好，无法发起支付");
-        reject && reject();
+        reject && reject("WeixinJSBridge未准备");
       }
     },
     bindClick(event) {
-      this.$router.push(this.$store.state.managerId ? "/login" : "/bindins");
+      this.$router.push(this.$store.state.managerId ? "/system" : "/bindins");
     },
     onBridgeReady() {
       this.wxJSBridgeReady = true;
+    },
+    refreshClick() {
+      this.$router.go(0);
     }
   }
 };
@@ -360,11 +370,11 @@ td {
 }
 td button {
   width: 70%;
-  height: 0.9rem;
+  height: 0.85rem;
 }
 .yd-btn {
-  height: 0.9rem;
-  border-radius: 4px;
+  height: 0.85rem;
+  border-radius: 5px;
 }
 .footer {
   width: 100%;

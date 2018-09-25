@@ -36,6 +36,7 @@ export default function $axios(options) {
           console.log("data", config.data)
         //   config.data = qs.stringify(config.data)
         //   config.headers["post"]["content-type"] = "application/json"
+            
         }
         return config
       },

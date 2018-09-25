@@ -14,6 +14,10 @@
                 <yd-input slot="right" v-model="pwd" ref="pwd" regex="^[\w]{6,15}$" required type="password" placeholder="至少6位,仅支持数字、字母、下划线" />
             </yd-cell-item>  
             <yd-cell-item>
+                <span slot="left">确认密码:</span>
+                <yd-input slot="right" v-model="pwdConfirm" ref="pwdConfirm" regex="^[\w]{6,15}$" required type="password" placeholder="请再次输入密码" />
+            </yd-cell-item>      
+            <yd-cell-item>
                 <span slot="left">验证码:</span>
                 <yd-input slot="right" v-model="verifyCode" ref="verifyCode" required placeholder="请输入验证码" />
                 <yd-sendcode slot="right" v-model="start"
@@ -62,7 +66,7 @@ export default {
         this.start = true;
         //发送验证码
         this.$ajax
-          .post("/api", {
+          .post(process.env.SERVER_HOST, {
             apiCode: 110204,
             content: {
               mobile: self.mobile,
@@ -107,16 +111,24 @@ export default {
         this.$dialog.showErrToast("请输入密码");
         return;
       }
+
+       //密码与密码确认是否一致
+      if (this.pwd != this.pwdConfirm) {
+        this.$dialog.showErrToast("两次输入的密码不一致");
+        return;
+      }
+
       var reg = /^[\w]{6,15}$/;
       if (!reg.test(this.pwd)) {
         this.$dialog.showErrToast("密码至少6位,只支持数字、字母、下划线");
         return;
       }
 
+
       //注册
       this.$dialog.loading.open("注册中...");
       this.$ajax
-        .post("/api", {
+        .post(process.env.SERVER_HOST, {
           apiCode: 110205,
           content: {
             serialCode: self.$store.state.serialCode, //设备序列号
@@ -132,68 +144,22 @@ export default {
           self.$dialog.loading.close();
           if (res.data.resCode == 0) {
             //注册成功
-            self.$dialog.showOkToast("注册成功");
-            // setTimeout(() => {
-            //   //绑定管理员
-            //   self.$dialog.loading.open("绑定管理员...");
-            //   self.$ajax
-            //     .post("/api", {
-            //       apiCode: 110207,
-            //       content: {
-            //         serialCode: self.$store.state.serialCode, //设备序列号
-            //         username: this.mobile,
-            //         password: this.pwd,
-            //         code: this.verifyCode
-            //       },
-            //       token: self.$store.state.apiToken,
-            //       terminalNo: self.$store.state.terminalNo
-            //     })
-            //     .then(res => {
-            //       self.$dialog.loading.close();
-            //       if (res.data.resCode == 0) {
-            //         //更新管理员信息
-            //         self.$store.commit("updateToken", res.data.token);
-            //         self.$store.commit("updateManagerId", res.data.managerId);
-
-            //         setTimeout(() => {
-            //           self.$router.go(-1);
-            //         }, 1000);
-            //       } else {
-            //         this.$dialog.showErrToast(res.data.resMsg);
-            //         self.$router.replace("bindamin"); //跳到绑定页面
-            //       }
-            //     })
-            //     .catch(err => {
-            //       console.log(err);
-            //       self.$dialog.toast({
-            //         mes: "网络不给力~",
-            //         icon: "error",
-            //         timeout: 2000
-            //       });
-            //     });
-            // }, 1000);
-
-            //跳转到系统设置页面
-            setTimeout(() => {
-              self.$router.replace("/system");
-            }, 3000);
+            self.$dialog.showOkToast("注册成功", null, () => {
+              // self.$router.commit(
+              //   "updateManagerId",
+              //   res.data.content.managerId
+              // ); //更新managerId
+              self.$router.replace("/login"); //跳转到登录页面
+            });
           } else {
             //失败
-            self.$dialog.toast({
-              mes: res.data.resMsg,
-              icon: "error",
-              timeout: 2000
-            });
+            self.$dialog.showErrToast(res.data.resMsg);
           }
         })
         .catch(err => {
           //失败
           self.$dialog.loading.close();
-          self.$dialog.toast({
-            mes: "网络不给力~",
-            icon: "error",
-            timeout: 2000
-          });
+          self.$dialog.showErrToast("网络不给力~");
         });
     },
     cancelClick() {

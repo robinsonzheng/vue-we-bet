@@ -48,19 +48,9 @@ export default {
       var reg = 11 && /^((13|14|15|17|18)[0-9]{1}\d{8})$/;
       //var url="/nptOfficialWebsite/apply/sendSms?mobile="+this.ruleForm.phone;
       if (this.mobile == "") {
-        this.$dialog.toast({
-          mes: "请输入手机号码",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
+        this.$dialog.showErrToast("请输入手机号码");
       } else if (!reg.test(this.mobile)) {
-        this.$dialog.toast({
-          mes: "手机格式不正确",
-          icon: "error",
-          timeout: 1000
-        });
-        this.$refs.mobile.setFocus();
+        this.$dialog.showErrToast("手机格式不正确");
       } else {
         this.$dialog.loading.open("发送中...");
         var self = this;
@@ -68,7 +58,7 @@ export default {
           this.start = true;
           //发送验证码
           this.$ajax
-            .post("/api", {
+            .post(process.env.SERVER_HOST, {
               apiCode: 110204,
               content: {
                 mobile: self.mobile,
@@ -93,34 +83,30 @@ export default {
       var self = this;
       //验证验证码
       if (this.verifyCode === "") {
-        this.$dialog.alert({ mes: "请输入验证码" });
-        this.$refs.verifyCode.setFocus();
+        this.$dialog.showErrToast("请输入验证码");
         return;
       }
       //验证密码
       if (this.pwd === "") {
-        this.$dialog.alert({ mes: "请输入密码" });
-        this.$refs.pwd.setFocus();
+        this.$dialog.showErrToast("请输入密码");
         return;
       }
 
       //密码与密码确认是否一致
       if (this.pwd != this.pwdConfirm) {
-        this.$dialog.alert({ mes: "两次输入的密码不一致" });
-        this.$refs.pwdConfirm.setFocus();
+        this.$dialog.showErrToast("两次输入的密码不一致");
         return;
       }
 
       var reg = /^[\w]{6,15}$/;
       if (!reg.test(this.pwd)) {
-        this.$dialog.alert({ mes: "密码至少6位,只支持数字、字母、下划线" });
-        this.$refs.pwd.setFocus();
+        this.$dialog.showErrToast("密码至少6位,只支持数字、字母、下划线");
         return;
       }
 
       //修改密码
       this.$ajax
-        .post("/api", {
+        .post(process.env.SERVER_HOST, {
           apiCode: 110203,
           content: {
             username: this.mobile,
@@ -129,7 +115,7 @@ export default {
           }
         })
         .then(res => {
-          if (res.resCode === 0) {
+          if (res.data.resCode === 0) {
             //修改成功
             self.$dialog.toast({
               mes: "修改成功",
@@ -141,7 +127,7 @@ export default {
             }, 1000);
           } else {
             //失败
-            self.$dialog.alert({ mes: "修改失败" });
+            self.$dialog.alert({ mes: "修改失败，" + res.data.resMsg });
           }
         })
         .catch(err => {

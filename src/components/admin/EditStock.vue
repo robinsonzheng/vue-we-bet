@@ -19,11 +19,21 @@
                 </div>
             </yd-popup>
 
+            <!-- 游戏选择弹出框 -->
+            <yd-popup position="bottom" height="100%" v-model="post.showTicketList">          
+              <yd-cell-group title="游戏选择">
+                <yd-cell-item type="radio" v-for="ticketInfo in post.ticketList" v-bind:key="ticketInfo.ticketId" v-bind:value="ticketInfo.ticketId" @click.native="chooseTicket(ticketInfo)">
+                    <span slot="left">{{ticketInfo.ticketName}}</span>
+                    <input slot="right" type="radio" :value="ticketInfo.ticketId" v-model="post.pickedTicketId"/>
+                </yd-cell-item>               
+              </yd-cell-group>
+            </yd-popup>            
+
             <!-- 游戏详情 -->
             <yd-flexbox>
                 <yd-flexbox-item>
                     <div style="padding:20px;">
-                        <img slot="icon" src="http://static.ydcss.com/ydui/img/logo.png" style="width: 100%;height:auto;" />
+                        <img slot="icon" :src="post.frontIcon" style="width: 100%;height:auto;" />
                     </div>
                 </yd-flexbox-item>
                 <yd-flexbox-item>
@@ -31,13 +41,13 @@
                         <yd-flexbox-item>
                             <yd-cell-item>
                                 <span slot="left">游戏:</span>
-                                <span slot="left" style="margin-left:10px">{{post.game}}</span>
+                                <span slot="left" style="margin-left:10px">{{post.ticketName}}</span>
                             </yd-cell-item>
                         </yd-flexbox-item>
                         <yd-flexbox-item>
                             <yd-cell-item>
                                 <span slot="left">单价:</span>
-                                <span slot="left" style="margin-left:10px">{{post.price}}元</span>
+                                <span slot="left" style="margin-left:10px">{{post.money}}元</span>
                             </yd-cell-item>
                         </yd-flexbox-item>
                         <yd-flexbox-item>
@@ -50,7 +60,7 @@
                 </yd-flexbox-item>
             </yd-flexbox>
 
-            <yd-tab bg-color2="rgb(185, 183, 183)" active-color3="rgb(185, 183, 183)">
+            <yd-tab bg-color2="rgb(185, 183, 183)" active-color3="rgb(185, 183, 183)" :callback="tabSwitch" v-model="post.activeTab">
                 <yd-tab-panel label="增加库存">                    
                     <!-- <span>增加数量:</span> -->
                     <table>
@@ -76,32 +86,31 @@
                             <td><yd-button :type="post.activeIndex === 8?'danger':'hollow'" @click.native="qtyBtnClick(8,240)">240张</yd-button></td>
                             <td><yd-button :type="post.activeIndex === 9?'danger':'hollow'"  @click.native="qtyBtnClick(9)">其他数量</yd-button></td>                            
                         </tr>
-                    </table>           
-                    <div class="center-holder">                 
-                    </div>                      
+                    </table>          
                 </yd-tab-panel>
                 <yd-tab-panel label="更换票种">
-                    <!-- <div class="flexbox">             
-                        <div>           
-                            <span>减少数量:</span>
-                        </div>
-                        <div class="flexbox-qty">                            
-                            <yd-button type="hollow">30张</yd-button>
-                            <yd-button type="hollow">60张</yd-button>
-                            <yd-button type="hollow">120张</yd-button>
-                            <yd-button type="hollow">240张</yd-button>
-                            <yd-button type="hollow">其他</yd-button>
-                        </div>
-                    </div> -->
-
-
+                  <yd-cell-item arrow type="label" @click.native="ticketListClick">
+                      <span slot="left">更换票种：</span>
+                      <span slot="right">{{post.newTicketInfo.ticketName}}</span>                 
+                  </yd-cell-item>
+                  <table>
+                      <tr>
+                          <td><yd-button :type="post.activeIndex === 10?'danger':'hollow'" @click.native="qtyBtnClick(10,30)">30张</yd-button></td>
+                          <td><yd-button :type="post.activeIndex === 11?'danger':'hollow'" @click.native="qtyBtnClick(11,60)">60张</yd-button></td>
+                          <td><yd-button :type="post.activeIndex === 12?'danger':'hollow'" @click.native="qtyBtnClick(12,120)">120张</yd-button></td>
+                      </tr>
+                      <tr>
+                          <td><yd-button :type="post.activeIndex === 13?'danger':'hollow'" @click.native="qtyBtnClick(13,240)">240张</yd-button></td>
+                          <td><yd-button :type="post.activeIndex === 14?'danger':'hollow'"  @click.native="qtyBtnClick(14)">其他数量</yd-button></td>                            
+                      </tr>
+                  </table>   
                 </yd-tab-panel>                 
             </yd-tab>
             
-            <!-- <div class="center-holder">
-                <yd-button type="hollow" @click.native="okClick">编辑库存</yd-button>
+            <div class="center-holder">
+                <yd-button type="hollow" @click.native="okClick">确定</yd-button>
                 <yd-button type="hollow" @click.native="cancelClick">取消</yd-button>                     
-            </div> -->
+            </div>
         </div>
     <!-- </yd-layout> -->
 </template>
@@ -111,8 +120,13 @@ export default {
   data() {
     return {
       post: {
-        lastModifiedTime: "2018-09-12 00:00:00",
-        activeIndex: -1
+        activeIndex: -1,
+        tmpQty: 1,
+        qty: 0,
+        pickedTicketId: 0,
+        ticketList: [],
+        newTicketInfo: {},
+        activeTab: 0
       }
     };
   },
@@ -124,51 +138,266 @@ export default {
   },
   watch: {
     // 如果路由有变化，会再次执行该方法
-    $route: "fetchData"
+    $route: "fetchData",
+    "post.activeTab": "onActiveTabChanged"
   },
   methods: {
     fetchData() {
-      this.error = null;
-      this.$root.$dialog.loading.open();
-      // replace getPost with your data fetching util / API wrapper
-      this.getPost(this.$route.params.id, (err, data) => {
-        this.$root.$dialog.loading.close();
-        if (err) {
-          this.error = err.toString();
-        } else {
-          this.$set(this.post, "serialNo", data.serialNo);
-          this.$set(this.post, "game", data.game);
-          this.$set(this.post, "price", data.price);
-          this.$set(this.post, "inventory", data.inventory);
-          this.$set(this.post, "qty", 1);
-          this.$set(this.post, "pic", data.pic);
-        }
+      let params = this.$route.params;
+      this.$set(this.post, "ticketId", params.ticketId);
+      this.$set(this.post, "houseId", params.houseId);
+      this.$set(this.post, "ticketName", params.ticketName);
+      this.$set(this.post, "money", params.money);
+      this.$set(this.post, "frontIcon", params.frontIcon);
+      this.$set(this.post, "inventory", params.inventory);
+
+      this.$set(this.post, "newTicketInfo", {
+        ticketId: params.ticketId,
+        ticketName: params.ticketName
       });
     },
-    getPost(id, callback) {
-      //TODO: 调用数据API，包括返回数据以及错误处理
-      setTimeout(() => {
-        //模拟数据加载过程
-        var data = {};
-        data.serialNo = "123456";
-        data.game = "福彩";
-        data.price = 2;
-        data.inventory = 6;
-        data.pic = "http://static.ydcss.com/uploads/ydui/2.jpg";
-        var err = null;
-        callback && callback(err, data);
-      }, 500);
-    },
     okClick() {
-      this.$router.replace("/editstock");
+      console.log("qty=", this.post.qty);
+
+      if (!this.post.qty) {
+        this.$dialog.showErrToast("请输入数量");
+        return;
+      }
+
+      if (this.post.activeTab == 2) {
+        //验证游戏是否变更
+        if (this.post.newTicketInfo.ticketId == this.post.ticketId) {
+          this.$dialog.showErrToast("请更换不同票种");
+          return;
+        }
+      }
+
+      var self = this;
+      this.error = null;
+      this.$dialog.loading.open("载入中...");
+
+      this.$ajax
+        .post(process.env.SERVER_HOST, {
+          apiCode: 110703,
+          content: {
+            token: self.$store.state.managerToken,
+            ticketInfo: [
+              {
+                ticketId:
+                  self.post.activeTab == 2
+                    ? self.post.newTicketInfo.ticketId
+                    : self.post.ticketId,
+                houseId: self.post.houseId,
+                addType:
+                  self.post.activeTab == 0
+                    ? 1
+                    : self.post.activeTab == 1 ? 3 : 2, //1,补票；2,更换彩种放票；3,减票
+                amount: Math.abs(self.post.qty)
+              }
+            ]
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
+        })
+        .then(res => {
+          self.$dialog.loading.close();
+          if (res.data.resCode == 0) {
+            //成功
+            self.$dialog.showOkToast("修改成功", null, () => {
+              //如果是更换票种，重新载入设备信息
+              if (self.post.activeTab == 2) {
+                self.$dialog.loading.open("载入中...");
+                self.$ajax
+                  .post(process.env.SERVER_HOST, {
+                    apiCode: 110301,
+                    content: {
+                      serialCode: self.$store.state.serialCode
+                    }
+                  })
+                  .then(res => {
+                    if (res.data.resCode == 0) {
+                      let allHouseInfo = res.data.content.houseInfo; //多票仓
+                      let houseInfo = allHouseInfo[0];
+                      //记录票种信息
+                      self.$store.commit("updateTicketInfo", {
+                        houseId: houseInfo.houseId,
+                        ticketId: houseInfo.ticketId,
+                        ticketName: houseInfo.ticketName,
+                        money: houseInfo.money,
+                        frontIcon: houseInfo.frontIcon
+                      });
+                      //记录管理员ID，终端号码
+                      self.$store.commit(
+                        "updateManagerId",
+                        res.data.content.managerId
+                      );
+                      self.$store.commit(
+                        "updateTerminalNo",
+                        res.data.terminalNo
+                      );
+                      self.$store.commit("updateToken", res.data.token);
+                      self.$router.replace({ path: "/stock" });
+                      
+                    } else {
+                      self.$dialog.showErrToast(
+                        "加载设备信息发生异常，系统将跳转到首页",
+                        null,
+                        () => {
+                          self.$router.replace({ path: "/order" });
+                        }
+                      );
+                    }
+                  })
+                  .catch(err => {
+                    self.$dialog.showErrToast(
+                      "加载设备信息发生异常，系统将跳转到首页",
+                      null,
+                      () => {
+                        self.$router.replace({ path: "/order" });
+                      }
+                    );
+                  });
+              } else {
+                self.$router.replace({ path: "/stock" });
+              }              
+            });
+          } else if (
+            res.data.resCode == "23001" ||
+            res.data.resCode == "000802"
+          ) {
+            //管理员未登录
+            self.$router.push({
+              name: "Login",
+              params: {
+                redirect_path: "/editstock",
+                redirect_params: {
+                  ticketName: self.post.ticketName,
+                  money: self.post.money,
+                  frontIcon: self.post.frontIcon,
+                  inventory: self.post.inventory
+                }
+              }
+            });
+          } else {
+            //失败，显示错误信息
+            self.$dialog.showErrToast(res.data.resMsg);
+          }
+        })
+        .catch(err => {
+          //异常
+          self.$dialog.loading.close();
+          self.$dialog.showErrToast("出错了,请检查网络~");
+        });
+    },
+    tabSwitch(label) {
+      if (label == "更换票种") {
+        this.loadTicketPanel();
+      }
+    },
+    loadTicketPanel() {
+      var self = this;
+      this.error = null;
+      this.$dialog.loading.open("载入中...");
+
+      this.$ajax
+        .post(process.env.SERVER_HOST, {
+          apiCode: 110702,
+          content: {
+            token: self.$store.state.managerToken
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
+        })
+        .then(res => {
+          self.$dialog.loading.close();
+          if (res.data.resCode == 0) {
+            //成功
+            self.post.ticketList.splice(0, self.post.ticketList.length);
+            if (res.data.content.ticketInfo) {
+              res.data.content.ticketInfo.forEach(element => {
+                self.post.ticketList.push({
+                  ticketId: element.ticketId,
+                  ticketName: element.ticketName
+                });
+              });
+            }
+          } else if (
+            res.data.resCode == "23001" ||
+            res.data.resCode == "000802"
+          ) {
+            //管理员未登录
+            self.$router.push({
+              name: "Login",
+              params: {
+                redirect_path: "/editstock",
+                redirect_params: {
+                  ticketName: self.post.ticketName,
+                  money: self.post.money,
+                  frontIcon: self.post.frontIcon,
+                  inventory: self.post.inventory
+                }
+              }
+            });
+          } else {
+            //失败，显示错误信息
+            self.$dialog.showErrToast(res.data.resMsg);
+          }
+        })
+        .catch(err => {
+          //异常
+          self.$dialog.loading.close();
+          self.$dialog.showErrToast("出错了,请检查网络~");
+        });
     },
     cancelClick() {
-      this.$router.go(-1);
+      this.$router.replace("/stock");
     },
     qtyBtnClick(index, qty) {
       this.$set(this.post, "activeIndex", index);
       if (index === 4 || index === 9) {
         this.$set(this.post, "showOtherQty", true);
+      } else {
+        this.$set(this.post, "tmpQty", qty);
+        this.$set(this.post, "qty", index > 4 ? -qty : qty);
+      }
+    },
+    confirmQtyClick() {
+      if (this.post.activeIndex == 4) {
+        //增加其他数量
+        this.$set(this.post, "qty", this.post.tmpQty);
+      }
+      if (this.post.activeIndex == 9) {
+        //减少其他数量
+        this.$set(this.post, "qty", -this.post.tmpQty);
+      }
+      this.$set(this.post, "showOtherQty", false);
+    },
+    ticketListClick() {
+      this.$set(this.post, "showTicketList", true);
+    },
+    chooseTicket(ticketInfo) {
+      this.$set(this.post, "newTicketInfo", ticketInfo);
+      this.$set(this.post, "showTicketList", false);
+    },
+    onActiveTabChanged() {
+      // console.log("activeTab=", this.post.activeTab);
+      var resetQty = false;
+      if (this.post.activeTab == 0 && this.post.activeIndex > 4) {
+        resetQty = true;
+      }
+      if (
+        this.post.activeTab == 1 &&
+        (this.post.activeIndex <= 4 || this.post.activeIndex > 9)
+      ) {
+        resetQty = true;
+      }
+      if (this.post.activeTab == 2 && this.post.activeIndex < 10) {
+        resetQty = true;
+      }
+      if (resetQty) {
+        this.$set(this.post, "tmpQty", 1);
+        this.$set(this.post, "qty", 0);
+        this.$set(this.post, "activeIndex", -1);
       }
     }
   }
@@ -285,18 +514,18 @@ td button {
 .flexbox-qty button {
   width: 15%;
   margin: 4px;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 </style>
 
 <style>
-.yd-grids-3 {
+/* .yd-grids-3 {
   padding: 0;
 }
 .yd-grids-item {
   padding: 0;
-}
-.yd-grids-txt {
+} */
+/* .yd-grids-txt {
   height: 30px;
   line-height: 30px;
   border-color: #bbb;
@@ -308,9 +537,7 @@ td button {
 }
 .yd-grids-txt-activate {
   background-color: red;
-}
-.yd-grids-item span {
-}
+} */
 .yd-tab-panel {
   margin-top: 10px;
 }
@@ -318,6 +545,6 @@ td button {
   border-color: #bbb;
   border-style: solid;
   border-width: 1px;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 </style>

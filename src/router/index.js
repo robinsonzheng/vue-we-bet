@@ -4,6 +4,7 @@ import Home from "@/components/Home";
 import Order from "@/components/Order";
 import Help from "@/components/Help";
 import ScanQR from "@/components/ScanQR";
+import TicketLoading from "@/components/TicketLoading";
 import Ticket from "@/components/Ticket";
 import TicketErr from "@/components/TicketErr";
 import DeviceErr from "@/components/DeviceErr";
@@ -19,6 +20,9 @@ import ResetPwd from "@/components/admin/ResetPwd";
 import Login from "@/components/admin/Login";
 import Stock from "@/components/admin/Stock";
 import EditStock from "@/components/admin/EditStock";
+import DuiJiang from "@/components/DuiJiang";
+import SdDuiJiang from "@/components/SdDuiJiang";
+import Bonus from "@/components/Bonus";
 
 Vue.use(Router);
 
@@ -46,6 +50,14 @@ export default new Router({
       component: ScanQR,
       meta: {
         title: "扫码"
+      }
+    },
+    {
+      path: "/ticketloading",
+      name: "TicketLoading",
+      component: TicketLoading,
+      meta: {
+        title: "即开票购买"
       }
     },
     {
@@ -109,7 +121,8 @@ export default new Router({
       name: "BindAdmin",
       component: BindAdmin,
       meta: {
-        title: "绑定管理员"
+        title: "绑定管理员",
+        requireLogin: true
       }
     },
     {
@@ -117,7 +130,8 @@ export default new Router({
       name: "ResetPwd",
       component: ResetPwd,
       meta: {
-        title: "重设密码"
+        title: "重设密码",
+        requireLogin: true
       }
     },
     {
@@ -134,7 +148,8 @@ export default new Router({
       name: "System",
       component: System,
       meta: {
-        title: "系统设置"
+        title: "系统设置",
+        requireLogin: true
       }
     },
     {
@@ -142,7 +157,8 @@ export default new Router({
       name: "Location",
       component: Location,
       meta: {
-        title: "设备地址"
+        title: "设备地址",
+        requireLogin: true
       }
     },
     {
@@ -150,7 +166,8 @@ export default new Router({
       name: "NewLocation",
       component: NewLocation,
       meta: {
-        title: "修改地址"
+        title: "修改地址",
+        requireLogin: true
       }
     },
     {
@@ -166,7 +183,8 @@ export default new Router({
       name: "Stock",
       component: Stock,
       meta: {
-        title: "库存信息"
+        title: "库存信息",
+        requireLogin: true
       }
     },
     {
@@ -174,7 +192,32 @@ export default new Router({
       name: "EditStock",
       component: EditStock,
       meta: {
-        title: "编辑库存"
+        title: "编辑库存",
+        requireLogin: true
+      }
+    },
+    {
+      path: "/duijiang",
+      name: "DuiJiang",
+      component: DuiJiang,
+      meta: {
+        title: "即开票兑奖"
+      }
+    },
+    {
+      path: "/sdduijiang",
+      name: "SdDuiJiang",
+      component: SdDuiJiang,
+      meta: {
+        title: "即开票兑奖"
+      }
+    },
+    {
+      path: "/bonus",
+      name: "Bonus",
+      component: Bonus,
+      meta: {
+        title: "中奖结果"
       }
     }
   ]

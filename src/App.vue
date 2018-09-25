@@ -13,44 +13,22 @@ export default {
     };
   },
   methods: {},
-  created() {
-    // debugger;
-    // var url = location.href;
-    // console.log("App.vue_url", url);
-    // var home = url.split("#")[0];
-    // var router = url.split("#")[1];
-    // var routerPath = "/";
-    // console.log("router", router);
-    // if(router.indexOf("?") >= 0) {
-    //   routerPath = router.split("?")[0];
-    // }
-    // if(routerPath === "/") {
-    //   //除了首页，其他的页面都需要获取openid
-    //   return;
-    // }
-
-    // //TODO:删除调试代码
-    // var openId = this.$util.getParamVal(location.search, "openId");
-    // console.log("openId in query string", openId);
-    // if (openId) {
-    //   console.log("use debug open id");
-    //   this.$store.commit("updateOpenId", openId);
-    // }
-
-    // if (!this.$store.state.openId) {
-    //   //未获取，进行微信静默授权并获取openid
-    //   this.$store.commit("updateBeforeLoginUrl", url); //保存用户希望进入的URL
-    //   // this.$router.replace("/");
-    //   window.location.href = home;
-    //   debugger;
-    // }
+  created() {    
+    var serialCode = this.$util.getParamVal(
+      window.location.search,
+      "serialCode"
+    );
+    console.log("serialCode=", serialCode);
+    if (serialCode) {
+      this.$store.commit("updateSerialCode", serialCode);
+    }
   }
 };
 </script>
 
 <style>
 html {
-  font-size: 50px;
+  font-size: 55px;
 }
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
@@ -79,6 +57,31 @@ html {
 .content .center-holder .yd-btn {
   width: 50px;
   margin: 10px;
-  border-radius: 4px;
+  border-radius: 5px;
+}
+.page-wrapper {
+  width: 100%;
+  height: 100%;
+}
+.error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.error div {
+  flex: 1;
+}
+.error .error-content {
+  display: flex;
+  display: -webkit-flex;
+  justify-content: center;
+  /* align-items: flex-start; */
+  flex-wrap: wrap;
+}
+.error .error-content div {
+  flex-basis: 100%;
 }
 </style>

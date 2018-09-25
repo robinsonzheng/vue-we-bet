@@ -56,7 +56,7 @@ export default {
         this.start = true;
         //发送验证码
         this.$ajax
-          .post("/api", {
+          .post(process.env.SERVER_HOST, {
             apiCode: 110204,
             content: {
               mobile: self.mobile,
@@ -101,7 +101,7 @@ export default {
       self.$dialog.loading.open("绑定管理员...");
 
       self.$ajax
-        .post("/api", {
+        .post(process.env.SERVER_HOST, {
           apiCode: 110207,
           content: {
             serialCode: self.$store.state.serialCode, //设备序列号

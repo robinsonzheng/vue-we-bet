@@ -14,8 +14,9 @@
                     </yd-flexbox-item>
                     <yd-flexbox-item>
                         <div class="holder">
-                            <span style="font-size:.5rem;">设备编号: {{this.serialNo}}</span>
-                            <yd-icon name="feedback" style="font-size: .5rem;margin-left:10px;" @click.native="copyBtnClick"></yd-icon>
+                            <span style="font-size:.28rem;">设备编号: {{this.serialCode}}</span>                            
+                            <input id="serialCode" hidden readonly v-model="serialCode" />
+                            <yd-icon name="feedback" style="font-size: .35rem;margin-left:10px;" @click.native="copyBtnClick" v-clipboard:copy="serialCode" clipboard:success="onCopy" clipboard:error="onCopyErr"></yd-icon>
                         </div>
                     </yd-flexbox-item>
                     <yd-flexbox-item>
@@ -37,54 +38,30 @@
 import wx from "weixin-js-sdk";
 export default {
   data() {
-    return { serialNo: "12345678" };
+    return { serialCode: "" };
   },
   methods: {
     okClick() {
       //回到公众号主体
-      let url = location.href.split("#")[0]; //获取锚点之前的链接
-      this.$ajax
-        .post("/scan?url=" + url, {
-          url: url
-        })
-        .then(response => {
-          let res = response.data;
-          wx.config({
-            // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-            debug: true,
-            // 必填，公众号的唯一标识
-            appId: "wx1578db3d1b70d661",
-            // 必填，生成签名的时间戳
-            timestamp: "" + res.timestamp,
-            // 必填，生成签名的随机串
-            nonceStr: res.noncestr,
-            // 必填，签名
-            signature: res.signature,
-            // 必填，需要使用的JS接口列表，所有JS接口列表
-            jsApiList: ["checkJsApi", "closeWindow"]
-          });
-        });
-
-      wx.ready(function() {
-        wx.checkJsApi({
-          jsApiList: ["scanQRCode"],
-          success: function(res) {}
-        });
-        wx.closeWindow();
-      });
-
-      wx.error(function(err) {
-        alert(err);
-      });
+      this.$util.redirectToWxHome();
+    },
+    copyBtnClick() {
+      //复制
+      var serialCode = document.getElementById("serialCode");
+      serialCode.select(); // 选择对象
+      document.execCommand("Copy");
+      this.$dialog.showOkToast("已复制到剪贴板");
+    },
+    fetchData() {
+      this.serialCode = this.$store.state.serialCode;
     }
   },
-  copyBtnClick() {
-    //复制
+  created() {
+    this.fetchData();
   },
-  mounted() {
-    // console.log(WeixinJSBridge)
-    // var clipboard = new ClipboardJS('.yd-icon-feedback')
-    // console.log(clipboard)
+  watch: {
+    // 如果路由有变化，会再次执行该方法
+    $route: "fetchData"
   }
 };
 </script>
@@ -98,14 +75,14 @@ export default {
 .content .desc {
   text-align: left;
   padding: (10px, 0, 0, 10px);
-  font-size: .5rem;
+  font-size: 0.28rem;
 }
 .content .title {
   /* text-align: center; */
   height: 60px;
   line-height: 60px;
   text-align: left;
-  font-size: 5rem;
+  font-size: 0.5rem;
 }
 .content .holder {
   justify-content: center; /*子元素水平居中*/

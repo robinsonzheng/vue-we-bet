@@ -32,18 +32,16 @@ export default {
       console.log("getting wx config");
       let url = encodeURIComponent(location.href.split("#")[0]); //获取锚点之前的链接
       // let url = "http://dev.joylott.net/jkp/gw";
-
-      alert(url);
-
+      // alert(url);
       this.$ajax
-        .post("/scan?url=" + url, {
+        .post(process.env.SERVER_HOST + "scan?url=" + url, {
           url: url
         })
         .then(response => {
           let res = response.data;
           wx.config({
             // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-            debug: true,
+            debug: false,
             // 必填，公众号的唯一标识
             appId: "wx1578db3d1b70d661",
             // 必填，生成签名的时间戳

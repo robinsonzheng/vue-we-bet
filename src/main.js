@@ -5,7 +5,7 @@ import YDUI from "vue-ydui"; /* 相当于import YDUI from 'vue-ydui/ydui.rem.js'
 import "vue-ydui/dist/ydui.rem.css"; /* 使用px：import 'vue-ydui/dist/ydui.px.css'; */
 // import "vue-ydui/dist/ydui.px.css";
 import "vue-ydui/dist/ydui.base.css";
-// import MintUI from "mint-ui";
+import { Picker } from "mint-ui";
 // import "mint-ui/lib/style.css";
 import {
   Confirm,
@@ -14,7 +14,7 @@ import {
   Notify,
   Loading
 } from "vue-ydui/dist/lib.rem/dialog";
-// import VueClipboard from "vue-clipboard2";
+import VueClipboard from "vue-clipboard2";
 import axios from "axios";
 import Vuex from "vuex";
 // import "assets/unlock.png"
@@ -32,9 +32,9 @@ Vue.use(YDUI);
 Vue.use(Vuex);
 Vue.use(api);
 // Vue.use(VueCookies);
-
+Vue.component(Picker.name, Picker);
 // Vue.use(MintUI);
-// Vue.use(VueClipboard);
+Vue.use(VueClipboard);
 
 Vue.prototype.$dialog = {
   confirm: Confirm,
@@ -42,18 +42,21 @@ Vue.prototype.$dialog = {
   toast: Toast,
   notify: Notify,
   loading: Loading,
-  showOkToast(mes, timeout) {
+  showOkToast(mes, timeout, callback) {
     this.toast({
       mes: mes,
       icon: "success",
-      timeout: timeout || 2000
+      timeout: timeout || 1000
     });
+    setTimeout(() => {
+      callback && callback();
+    }, timeout || 1000);
   },
   showErrToast(mes, timeout) {
     this.toast({
       mes: mes,
       icon: "error",
-      timeout: timeout || 2000
+      timeout: timeout || 1000
     });
   }
 };
@@ -73,6 +76,34 @@ const util = {
       }
     }
     return "";
+  },
+  formatDate(now) {
+    var year = now.getFullYear();
+    var month = now.getMonth() + 1;
+    var date = now.getDate();
+    var hour = now.getHours();
+    var minute = now.getMinutes();
+    var second = now.getSeconds();
+    return (
+      year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second
+    );
+  },
+  isEmptyString(obj) {
+    if (typeof obj == "undefined" || obj == null || obj == "") {
+      return true;
+    } else {
+      return false;
+    }
+  },
+  isIos: function() {
+    var agent = navigator.userAgent;
+    var isiOS = !!agent.match(/iPhone|mac|iPod|iPad|ios/i);
+    return isiOS;
+  },
+  redirectToWxHome() {
+    //进入微信公众号
+    window.location.href =
+      "https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzU4MTYwODY3MA==#wechat_redirect";
   }
 };
 
@@ -84,18 +115,13 @@ axios.defaults.headers.post["Content-Type"] = "application/json";
 Vue.prototype.$ajax = axios;
 console.log("baseURL:" + axios.defaults.baseURL);
 
-// //用于微信api请求的axios实例
-// var wxaxios = axios.create({
-//   baseURL: process.env.WX_SERVER
-// });
-// Vue.prototype.$wxajax = wxaxios;
-
 // Vue.prototype.$VueClipboard = VueClipboard
 
 const store = new Vuex.Store({
   state: {
     managerId: "", //管理员ID
     managerToken: "", //管理员token
+    managerUserName: "", //管理员用户名
     apiToken: "", //API调用的token
     terminalNo: "", //设备编号,
     serialCode: "", //设备码
@@ -108,6 +134,9 @@ const store = new Vuex.Store({
     },
     updateManagerToken(state, managerToken) {
       state.managerToken = managerToken;
+    },
+    updateManagerUserName(state, userName) {
+      state.managerUserName = userName;
     },
     updateToken(state, apiToken) {
       state.apiToken = apiToken;
@@ -127,48 +156,92 @@ const store = new Vuex.Store({
   }
 });
 
-var store2 = store;
-var util2 = util;
 Vue.prototype.$util = util;
 Vue.prototype.$wx = wx;
 
 router.beforeEach((to, from, next) => {
-  //判断是否已经获取用户的openid
-  // debugger;
+  let ua = window.navigator.userAgent.toLowerCase();
+  if (ua.match(/MicroMessenger/i) != "micromessenger") {
+    Alert({ mes: "请在手机微信客户端打开" });
+    return;
+  }
 
+  //判断是否已经获取用户的openid
   if (location.href.indexOf("localhost") >= 0) {
     // 开发环境
     VueCookies.set("openId", "o3gJ71TPzO7fbpRwhzoWYuLJIQYw");
+    // VueCookies.set("openId", "");
+
+    //TODO:删除TOKEN调试代码
+    // store.commit("updateToken", "c33367701511b4f6020ec61ded352059");
+    // store.commit("updateManagerId", "4");
+    // store.commit("updateManagerToken", "7e92cdace0c348e39f7d2e569be46b07");
+    // store.commit("updateManagerUserName", "18603017085");
   }
+
+  //A02183000001
+
+  // VueCookies.set("openId", "");
 
   var openId = VueCookies.get("openId");
 
   if (!openId) {
     var url = location.href;
-    // var code = util2.getParamVal(location.search, "code");
-    // var home = location.href.split("#")[0];
     console.log("beforeEach::beforeLoginUrl", url);
     if (to.path === "/") {
       //除了首页，其他的页面都需要获取openid
-      // debugger;
+      console.log("授权页面");
     } else {
       // store2.commit("updateBeforeLoginUrl", url); //保存用户希望进入的URL
       VueCookies.set("beforeLoginUrl", url);
-      // debugger;
-      // window.location.href = home;
       next("/", true);
       return;
     }
   }
 
+  //拦截需要管理员登录的路由
+  console.log("store.state.managerToken=", store.state.managerToken);
+  if (to.meta.requireLogin && !store.state.managerToken) {
+    // debugger;
+    router.replace({
+      name: "Login",
+      params: { redirect_path: to.fullPath }
+    });
+    return;
+  }
+
+  //避免返回到登录页面
+  if (to.fullPath == "/login" && store.state.managerToken) {
+    router.go(-1);
+    return;
+  }
+
   //校验serialCode设备码
   //没有serialCode，说明不是从扫码页面进入
-  if (store2.state.serialCode || to.path === "/order") {
+  var serialCode = util.getParamVal(window.location.search, "serialCode");
+  // console.log("serialCode", serialCode);
+  if (serialCode) {
+    store.commit("updateSerialCode", serialCode);
+  }
+
+  if (
+    (store.state.serialCode && store.state.serialCode.length > 0) ||
+    (to.path == "/order" ||
+      to.path == "/scan" ||
+      to.path == "/help" ||
+      to.path == "/duijiang" ||
+      to.path == "/sdduijiang" ||
+      to.path == "/bonus" ||
+      to.path == "/")
+  ) {
     /* 路由发生变化修改页面title */
     if (to.meta.title) {
       document.title = to.meta.title;
     }
     next();
+  } else {
+    console.log("设备码缺失,无法打开页面");
+    // debugger;
   }
 });
 
