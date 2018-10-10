@@ -47,10 +47,9 @@
         </yd-flexbox>
         
         <div class="help-item">
-            <p>温馨提示</p>
-            <p style="color:#ef4f4f">1.奖金超过1000元,需要前往即开票归属地区的销售网点按照规定进行兑奖。</p>
-            <p>2.每台手机设备每人每日最多兑奖100次,且每日兑奖额上限为2万元。</p>
-            <p>3.奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
+            <p>温馨提示:</p>
+            <p style="color:#ef4f4f">1.若您单笔奖金超过2万元,或者由于扫码有问题等情况无法兑奖,您需要前往即开票归属地区的销售网点按照规定进行兑奖。</p>                        
+            <p>2.奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
         </div>
 
     </div>
@@ -147,14 +146,14 @@ export default {
               errMsg: res.data.resMsg
             };
           }
-
+          
           self.$router.replace({
             name: "Bonus",
             params: bonusParams
           });
         })
         .catch(err => {
-          //失败          
+          //失败
           self.$dialog.loading.close();
           self.$router.replace({
             name: "Bonus",
@@ -201,7 +200,7 @@ export default {
 }
 .help-item p {
   padding-bottom: 5px;
-  font-size: .23rem;
+  font-size: 0.23rem;
 }
 a {
   /* color: rgb(51, 153, 255); */

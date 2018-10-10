@@ -34,7 +34,7 @@
             </yd-flexbox-item>
         </yd-flexbox>
 
-         <yd-flexbox>
+        <!-- <yd-flexbox>
             <yd-flexbox-item>
                 <div class="btn-wrapper">
                     <div>
@@ -44,13 +44,12 @@
                     </div>
                 </div>
             </yd-flexbox-item>
-        </yd-flexbox>
+        </yd-flexbox> -->
 
         <div class="help-item">
-            <p>温馨提示</p>
-            <p style="color:#ef4f4f">1.奖金超过1000元,需要前往即开票归属地区的销售网点按照规定进行兑奖。</p>
-            <p>2.每台手机设备每人每日最多兑奖100次,且每日兑奖额上限为2万元。</p>
-            <p>3.奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
+            <p>温馨提示:</p>
+            <p style="color:#ef4f4f">1.若您单笔奖金超过2万元,或者由于扫码有问题等情况无法兑奖,您需要前往即开票归属地区的销售网点按照规定进行兑奖。</p>            
+            <p>2.奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
         </div>
 
     </div>
@@ -70,12 +69,12 @@ export default {
     };
   },
   created() {
-    if (this.$util.isIos()) {
-      this.$router.replace({
-        name: "SdDuiJiang",
-        params: { disableScan: true }
-      });
-    }
+    // if (this.$util.isIos()) {
+    //   this.$router.replace({
+    //     name: "SdDuiJiang",
+    //     params: { disableScan: true }
+    //   });
+    // }
   },
   methods: {
     tipsClick() {
@@ -103,6 +102,11 @@ export default {
       // } else {
       //   this.$dialog.showErrToast("无效票");
       // }
+
+      if (this.$util.isIos()) {
+        this.$dialog.alert({ mes: "ios系统暂时不支持兑奖" });
+        return;
+      }
 
       this.$nextTick(function() {
         this.getConfig();
@@ -136,6 +140,7 @@ export default {
           });
         });
 
+      var self = this;
       wx.ready(function() {
         wx.checkJsApi({
           jsApiList: ["scanQRCode"],
@@ -148,20 +153,23 @@ export default {
           success: function(res) {
             var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
             var ticketCode;
-            alert("扫描结果：" + result);
+            // alert("扫描结果：" + result);
             //调用中奖查询接口
             if (result) {
               try {
                 var values = result.split(",");
                 ticketCode = values[1];
-              } catch (err) {}
+              } catch (err) {
+                // alert("[debug]解析条码信息异常,条码信息:" + result);
+              }
               if (!ticketCode) {
-                this.$dialog.showErrToast("无效票");
+                self.$dialog.showErrToast("无效票");
                 return;
               }
-              this.queryResult(ticketCode);
+              self.queryResult(ticketCode);
             } else {
-              this.$dialog.showErrToast("无效票");
+              // alert("[debug]无效票"); //TODO:delete debug msg
+              self.$dialog.showErrToast("无效票");
             }
           }
         });
@@ -172,6 +180,8 @@ export default {
       });
     },
     queryResult(ticketCode) {
+      // alert("[debug]查询兑奖信息:" + ticketCode); //TODO:delete debug msg
+
       this.$dialog.loading.open("查询中...");
       var self = this;
       this.$ajax
@@ -185,6 +195,8 @@ export default {
           terminalNo: self.$store.state.terminalNo
         })
         .then(res => {
+          // alert("[debug]查询成功, 返回" + JSON.stringify(res.data)); //TODO:delete debug msg
+
           self.$dialog.loading.close();
           var bonusParams = {};
           if (res.data.resCode == 0) {
@@ -236,6 +248,7 @@ export default {
           });
         })
         .catch(err => {
+          // alert("[debug]查询异常"); //TODO:delete debug msg
           //失败
           self.$dialog.loading.close();
           self.$router.replace({

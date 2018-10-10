@@ -14,7 +14,9 @@
                         <yd-spinner min="1" unit="1" width="160px" height="40px" v-model="post.tmpQty"></yd-spinner>
                     </p>                    
                     <p style="height:50px;line-height:50px">
-                        <yd-button type="danger" style="width:80px;height:35px"  @click.native="confirmQtyClick">确定</yd-button>
+                        <yd-button type="danger" style="width:80px;height:35px"  @click.native="confirmQtyClick">
+                          <span>确定{{post.activeTab==0?"增加":post.activeTab==1?"减少":""}}</span>
+                        </yd-button>
                     </p>               
                 </div>
             </yd-popup>
@@ -33,7 +35,7 @@
             <yd-flexbox>
                 <yd-flexbox-item>
                     <div style="padding:20px;">
-                        <img slot="icon" :src="post.frontIcon" style="width: 100%;height:auto;" />
+                        <img slot="icon" :src="post.frontIcon" />
                     </div>
                 </yd-flexbox-item>
                 <yd-flexbox-item>
@@ -172,9 +174,72 @@ export default {
         }
       }
 
+      this.callUpdateRequest();
+    },
+    tabSwitch(label) {
+      if (label == "更换票种") {
+        this.loadTicketPanel();
+      }
+    },
+    loadTicketPanel() {
       var self = this;
       this.error = null;
       this.$dialog.loading.open("载入中...");
+
+      this.$ajax
+        .post(process.env.SERVER_HOST, {
+          apiCode: 110702,
+          content: {
+            token: self.$store.state.managerToken
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
+        })
+        .then(res => {
+          self.$dialog.loading.close();
+          if (res.data.resCode == 0) {
+            //成功
+            self.post.ticketList.splice(0, self.post.ticketList.length);
+            if (res.data.content.ticketInfo) {
+              res.data.content.ticketInfo.forEach(element => {
+                self.post.ticketList.push({
+                  ticketId: element.ticketId,
+                  ticketName: element.ticketName
+                });
+              });
+            }
+          } else if (
+            res.data.resCode == "23001" ||
+            res.data.resCode == "000802"
+          ) {
+            //管理员未登录
+            self.$router.push({
+              name: "Login",
+              params: {
+                redirect_path: "/editstock",
+                redirect_params: {
+                  ticketName: self.post.ticketName,
+                  money: self.post.money,
+                  frontIcon: self.post.frontIcon,
+                  inventory: self.post.inventory
+                }
+              }
+            });
+          } else {
+            //失败，显示错误信息
+            self.$dialog.showErrToast(res.data.resMsg);
+          }
+        })
+        .catch(err => {
+          //异常
+          self.$dialog.loading.close();
+          self.$dialog.showErrToast("出错了,请检查网络~");
+        });
+    },
+    callUpdateRequest() {
+      var self = this;
+      this.error = null;
+      this.$dialog.loading.open("请稍后...");
 
       this.$ajax
         .post(process.env.SERVER_HOST, {
@@ -237,7 +302,6 @@ export default {
                       );
                       self.$store.commit("updateToken", res.data.token);
                       self.$router.replace({ path: "/stock" });
-                      
                     } else {
                       self.$dialog.showErrToast(
                         "加载设备信息发生异常，系统将跳转到首页",
@@ -259,68 +323,8 @@ export default {
                   });
               } else {
                 self.$router.replace({ path: "/stock" });
-              }              
-            });
-          } else if (
-            res.data.resCode == "23001" ||
-            res.data.resCode == "000802"
-          ) {
-            //管理员未登录
-            self.$router.push({
-              name: "Login",
-              params: {
-                redirect_path: "/editstock",
-                redirect_params: {
-                  ticketName: self.post.ticketName,
-                  money: self.post.money,
-                  frontIcon: self.post.frontIcon,
-                  inventory: self.post.inventory
-                }
               }
             });
-          } else {
-            //失败，显示错误信息
-            self.$dialog.showErrToast(res.data.resMsg);
-          }
-        })
-        .catch(err => {
-          //异常
-          self.$dialog.loading.close();
-          self.$dialog.showErrToast("出错了,请检查网络~");
-        });
-    },
-    tabSwitch(label) {
-      if (label == "更换票种") {
-        this.loadTicketPanel();
-      }
-    },
-    loadTicketPanel() {
-      var self = this;
-      this.error = null;
-      this.$dialog.loading.open("载入中...");
-
-      this.$ajax
-        .post(process.env.SERVER_HOST, {
-          apiCode: 110702,
-          content: {
-            token: self.$store.state.managerToken
-          },
-          token: self.$store.state.apiToken,
-          terminalNo: self.$store.state.terminalNo
-        })
-        .then(res => {
-          self.$dialog.loading.close();
-          if (res.data.resCode == 0) {
-            //成功
-            self.post.ticketList.splice(0, self.post.ticketList.length);
-            if (res.data.content.ticketInfo) {
-              res.data.content.ticketInfo.forEach(element => {
-                self.post.ticketList.push({
-                  ticketId: element.ticketId,
-                  ticketName: element.ticketName
-                });
-              });
-            }
           } else if (
             res.data.resCode == "23001" ||
             res.data.resCode == "000802"
@@ -354,7 +358,7 @@ export default {
     },
     qtyBtnClick(index, qty) {
       this.$set(this.post, "activeIndex", index);
-      if (index === 4 || index === 9) {
+      if (index === 4 || index === 9 || index == 14) {
         this.$set(this.post, "showOtherQty", true);
       } else {
         this.$set(this.post, "tmpQty", qty);
@@ -362,7 +366,7 @@ export default {
       }
     },
     confirmQtyClick() {
-      if (this.post.activeIndex == 4) {
+      if (this.post.activeIndex == 4 || this.post.activeIndex == 14) {
         //增加其他数量
         this.$set(this.post, "qty", this.post.tmpQty);
       }
@@ -371,6 +375,11 @@ export default {
         this.$set(this.post, "qty", -this.post.tmpQty);
       }
       this.$set(this.post, "showOtherQty", false);
+
+      //如果是增加/减少，直接发起请求，不需要再按以下确定按钮
+      if (this.post.activeIndex == 4 || this.post.activeIndex == 9) {
+        this.callUpdateRequest();
+      }
     },
     ticketListClick() {
       this.$set(this.post, "showTicketList", true);
@@ -428,21 +437,6 @@ td {
 td button {
   width: 70%;
   height: 40px;
-}
-.yd-btn {
-  height: 35px;
-}
-.footer {
-  width: 100%;
-  height: 45px;
-}
-.footer div {
-  width: 50%;
-  height: 45px;
-  vertical-align: middle;
-  font-size: 0.28rem;
-  color: rgb(229, 28, 35);
-  line-height: 45px;
 }
 .popup {
   width: 80%;
@@ -515,6 +509,13 @@ td button {
   width: 15%;
   margin: 4px;
   border-radius: 5px;
+}
+
+img {
+  width: 100%;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 300px !important;
 }
 </style>
 

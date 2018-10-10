@@ -7,7 +7,7 @@
             </yd-cell-item>
             <yd-cell-item>
                 <span slot="left">密码:</span>
-                <yd-input slot="right" v-model="pwd" ref="pwd" regex="^[\w]{6,15}$" required type="password" placeholder="请输入密码" />
+                <yd-input slot="right" v-model="pwd" ref="pwd" regex="^[\w]{6,15}$" required type="password" placeholder="请输入注册时设置的密码" />
             </yd-cell-item>  
             <yd-cell-item>
                 <span slot="left">验证码:</span>
@@ -18,7 +18,12 @@
                     type="hollow"
                     init-str="获取验证码"></yd-sendcode>
             </yd-cell-item>        
-        </yd-cell-group>                
+        </yd-cell-group>     
+        <div class="flex-right">
+          <router-link :to="'/findpwd'">
+            <a href="#">忘记密码?</a>
+          </router-link>
+        </div>            
         <div class="center-holder">
             <yd-button type="hollow" @click.native="okClick">确认绑定</yd-button>
             <yd-button type="hollow" @click.native="cancelClick">取消</yd-button>                     
@@ -87,12 +92,12 @@ export default {
       }
 
       //验证验证码
-      if (this.verifyCode === "") {
+      if (this.verifyCode == "") {
         this.$dialog.showErrToast("请输入验证码");
         return;
       }
       //验证密码
-      if (this.pwd === "") {
+      if (this.pwd == "") {
         this.$dialog.showErrToast("请输入密码");
         return;
       }
@@ -114,17 +119,18 @@ export default {
         })
         .then(res => {
           self.$dialog.loading.close();
-          if (res.resCode === 0) {
+          if (res.data.resCode == 0) {
             //更新管理员信息
-            self.$store.commit("updateToken", res.token);
-            self.$store.commit("updateManagerId", res.managerId);
+            self.$store.commit("updateManagerToken", res.data.content.token);
+            self.$store.commit("updateManagerId", res.data.content.managerId);
+            self.$store.commit("updateManagerUserName", self.mobile);
 
-            this.$dialog.showOkToast("绑定成功");
+            self.$dialog.showOkToast("绑定成功");
             setTimeout(() => {
               self.$router.replace("/system"); //跳转到系统设置页面
             }, 1000);
           } else {
-            this.$dialog.showErrToast(res.data.resMsg);
+            self.$dialog.showErrToast(res.data.resMsg);
           }
         })
         .catch(err => {

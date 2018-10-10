@@ -41,12 +41,11 @@
             </div>
         </yd-popup>
 
-        <div>
+        <div style="">
             <!-- 游戏详情 -->
-            <yd-flexbox>
-                <yd-flexbox-item>
-                    <div style="padding:20px;">
-                        <img slot="icon" :src="post.frontIcon" style="width: 100%;height:auto;" />
+            <yd-flexbox style="height:50%;max-height:50%;">
+                <yd-flexbox-item><div style="padding:5px;max-height:50%;">
+                        <img slot="icon" :src="post.frontIcon" />
                     </div>
                 </yd-flexbox-item>
                 <yd-flexbox-item>
@@ -294,7 +293,7 @@ export default {
               res => {
                 console.log("支付成功");
                 //跳转到出票等待页面
-                self.$router.replace({path:"/ticketloading"});
+                self.$router.replace({ path: "/ticketloading" });
               },
               err => {
                 console.log("支付失败", err);
@@ -370,10 +369,10 @@ td {
 }
 td button {
   width: 70%;
-  height: 0.85rem;
+  height: .85rem;
 }
 .yd-btn {
-  height: 0.85rem;
+  height: .85rem;
   border-radius: 5px;
 }
 .footer {
@@ -425,4 +424,13 @@ td button {
   color: #555;
 }
 </style>
+<style scoped>
+img {
+  width: 100%;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 300px !important;
+}
+</style>
+
 

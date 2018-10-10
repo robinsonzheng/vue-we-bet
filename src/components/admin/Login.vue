@@ -3,11 +3,11 @@
         <yd-cell-group>
           <yd-cell-item>
                 <span slot="left">用户名:</span>
-                <yd-input slot="right" v-model="userName" ref="userName" required placeholder="" />
+                <yd-input slot="right" v-model="userName" ref="userName" required placeholder="请输入用户名" />
             </yd-cell-item> 
             <yd-cell-item>
                 <span slot="left">密码:</span>
-                <yd-input slot="right" v-model="pwd" ref="pwd" required type="password" :show-success-icon="false" :show-error-icon="false" placeholder="" />
+                <yd-input slot="right" v-model="pwd" ref="pwd" required type="password" :show-success-icon="false" :show-error-icon="false" placeholder="请输入密码" />
             </yd-cell-item>                
         </yd-cell-group>  
         <div class="flex-right">
@@ -37,13 +37,13 @@ export default {
     okClick() {
       var self = this;
 
-      if (this.userName === "") {
+      if (this.userName == "") {
         this.$dialog.showErrToast("请输入用户名");
         return;
       }
 
       //验证密码
-      if (this.pwd === "") {
+      if (this.pwd == "") {
         this.$dialog.showErrToast("请输入密码");
         return;
       }
@@ -72,12 +72,12 @@ export default {
             self.$dialog.showOkToast("登录成功", null, () => {
               //登录成功后跳转
               if (self.$route.params && self.$route.params.redirect_path) {
-                self.$router.push({
+                self.$router.replace({
                   path: self.$route.params.redirect_path,
                   params: self.$route.params.redirect_params
                 });
               } else {
-                self.$router.push("/order");
+                self.$router.replace("/system");
               }
             });
           } else if (res.data.resCode == "21002") {
@@ -90,7 +90,7 @@ export default {
         .catch(err => {
           //失败
           self.$dialog.loading.close();
-          self.$dialog.alert({ mes: err });
+          self.$dialog.alert({ mes: "出错了~" });
         });
     },
     cancelClick() {
@@ -105,13 +105,5 @@ export default {
 </script>
 
 <style scoped>
-.flex-right{
-  justify-content: flex-end; /*子元素水平居中*/
-  align-items: center; /*子元素垂直居中*/
-  display: -webkit-flex;
-}
-a {
-  /* color: rgb(51, 153, 255); */
-  color: rgb(0, 102, 255);
-}
+
 </style>

@@ -121,8 +121,7 @@ export default new Router({
       name: "BindAdmin",
       component: BindAdmin,
       meta: {
-        title: "绑定管理员",
-        requireLogin: true
+        title: "绑定管理员"        
       }
     },
     {

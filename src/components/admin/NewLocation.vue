@@ -65,7 +65,7 @@ export default {
             res.data.resCode == "23001" ||
             res.data.resCode == "000802"
           ) {
-            // TODO:管理员未登录
+            // 管理员未登录
             self.$router.push({
               name: "Login",
               params: { redirect_path: "/newlocation" }

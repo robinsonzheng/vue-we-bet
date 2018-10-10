@@ -119,7 +119,7 @@ export default {
             res.data.resCode == "23001" ||
             res.data.resCode == "000802"
           ) {
-            // TODO: 管理员未登录;
+            // 管理员未登录
             self.$router.push({
               name: "Login",
               params: { redirect_path: "/stock" }
@@ -157,75 +157,3 @@ export default {
   }
 };
 </script>
-
-<style>
-.left-panel {
-  width: 60%;
-  align-items: center;
-  justify-content: center;
-  padding: 5px;
-}
-.left-panel img {
-  width: 100%;
-  height: auto;
-}
-.right-panel {
-  width: 40%;
-}
-table {
-  width: 100%;
-}
-td {
-  width: 30%;
-  padding: 5px;
-}
-td button {
-  width: 70%;
-  /* height: 40px; */
-}
-.footer {
-  width: 100%;
-  height: 45px;
-}
-.footer div {
-  width: 50%;
-  height: 45px;
-  vertical-align: middle;
-  font-size: 0.28rem;
-  color: rgb(229, 28, 35);
-  line-height: 45px;
-}
-.popup {
-  width: 80%;
-}
-.popup p {
-  text-align: center;
-  height: 40px;
-  line-height: 40px;
-  font-size: 0.5rem;
-}
-/* basic style */
-.close {
-  /* still bad on picking color */
-  color: black;
-  /* make a round button */
-  border-radius: 12px;
-  /* center text */
-  line-height: 30px;
-  text-align: center;
-  height: 30px;
-  width: 30px;
-  font-size: 0.5rem;
-  padding: 0px;
-}
-/* use cross as close button */
-.close::before {
-  content: "\2716";
-}
-/* place the button on top-right */
-.close {
-  top: 5px;
-  right: 5px;
-  position: absolute;
-}
-</style>

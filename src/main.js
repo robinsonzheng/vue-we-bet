@@ -22,7 +22,7 @@ import Vuex from "vuex";
 // import "assets/star.png"
 // import "assets/location.png"
 // import "assets/stock.png"
-import api from "./http/index";
+// import api from "./http/index";
 import wx from "weixin-js-sdk";
 // import VueCookies  from "vue-cookies";
 
@@ -30,7 +30,7 @@ Vue.config.productionTip = false;
 
 Vue.use(YDUI);
 Vue.use(Vuex);
-Vue.use(api);
+// Vue.use(api);
 // Vue.use(VueCookies);
 Vue.component(Picker.name, Picker);
 // Vue.use(MintUI);
@@ -126,7 +126,8 @@ const store = new Vuex.Store({
     terminalNo: "", //设备编号,
     serialCode: "", //设备码
     ticketInfo: {}, //票种信息
-    orderNo: "" //订单号
+    orderNo: "", //订单号
+    waitingTag: false
   },
   mutations: {
     updateSerialCode(state, serialCode) {
@@ -152,6 +153,9 @@ const store = new Vuex.Store({
     },
     updateOrderNo(state, orderNo) {
       state.orderNo = orderNo;
+    },
+    updateWaitingTag(state, tag) {
+      state.waitingTag = tag;
     }
   }
 });
@@ -159,11 +163,50 @@ const store = new Vuex.Store({
 Vue.prototype.$util = util;
 Vue.prototype.$wx = wx;
 
+async function refreshDeviceToken(serialCode) {
+  store.commit("updateWaitingTag", true);
+  console.log("refreshDeviceToken begin");
+  //请求
+  await axios
+    .post(process.env.SERVER_HOST, {
+      apiCode: 110301,
+      content: {
+        serialCode: serialCode
+      }
+    })
+    .then(res => {
+      if (res.data.resCode == 0) {
+        console.log("refreshDeviceToken ok");
+        //成功
+        store.commit("updateManagerId", res.data.content.managerId);
+        store.commit("updateTerminalNo", res.data.terminalNo);
+        store.commit("updateToken", res.data.token);
+        // store.commit("updateWaitingTag", false);
+        return true;
+      } else {
+        //失败
+        console.log("refreshDeviceToken failed:", res);
+        alert("设备异常~");
+        // store.commit("updateWaitingTag", false);
+        return false;
+      }
+    })
+    .catch(err => {
+      //异常
+      console.log(err);
+      alert("出错了,请检查网络~");
+      // store.commit("updateWaitingTag", false);
+      return false;
+    });
+}
+
 router.beforeEach((to, from, next) => {
   let ua = window.navigator.userAgent.toLowerCase();
   if (ua.match(/MicroMessenger/i) != "micromessenger") {
-    Alert({ mes: "请在手机微信客户端打开" });
-    return;
+    if (location.href.indexOf("localhost") < 0) {
+      Alert({ mes: "请在手机微信客户端打开" });
+      return;
+    }
   }
 
   //判断是否已经获取用户的openid
@@ -188,7 +231,7 @@ router.beforeEach((to, from, next) => {
   if (!openId) {
     var url = location.href;
     console.log("beforeEach::beforeLoginUrl", url);
-    if (to.path === "/") {
+    if (to.path == "/") {
       //除了首页，其他的页面都需要获取openid
       console.log("授权页面");
     } else {
@@ -199,10 +242,28 @@ router.beforeEach((to, from, next) => {
     }
   }
 
+  //校验serialCode设备码
+  //没有serialCode，说明不是从扫码页面进入
+  var serialCode = util.getParamVal(window.location.search, "serialCode");
+  // console.log("serialCode", serialCode);
+  if (serialCode) {
+    store.commit("updateSerialCode", serialCode);
+  }
+
+  //检查api token
+  if (!store.state.apiToken && serialCode) {
+    refreshDeviceToken(serialCode).then(v => {
+      console.log("then...");
+      if (!store.state.apiToken) {
+        console.log("设备异常");
+        return;
+      }
+    });
+  }
+
   //拦截需要管理员登录的路由
   console.log("store.state.managerToken=", store.state.managerToken);
   if (to.meta.requireLogin && !store.state.managerToken) {
-    // debugger;
     router.replace({
       name: "Login",
       params: { redirect_path: to.fullPath }
@@ -216,14 +277,7 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  //校验serialCode设备码
-  //没有serialCode，说明不是从扫码页面进入
-  var serialCode = util.getParamVal(window.location.search, "serialCode");
-  // console.log("serialCode", serialCode);
-  if (serialCode) {
-    store.commit("updateSerialCode", serialCode);
-  }
-
+  // debugger;
   if (
     (store.state.serialCode && store.state.serialCode.length > 0) ||
     (to.path == "/order" ||

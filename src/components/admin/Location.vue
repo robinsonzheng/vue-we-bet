@@ -2,11 +2,15 @@
     <div class="page-wrapper">
       <div class="content" v-if="error==null">
           <yd-cell-group style="margin-top:20px;margin-bottom:40px;">
-              <yd-cell-item>
+              <yd-cell-item>                  
                   <span slot="left">设备地址:</span>
-                  <span slot="left" style="margin-left:.28rem">{{address}}</span>
+                  <span slot="left" style="margin-left:.28rem;word-break:normal;display:block;white-space:normal;text-align:left;">{{address}}</span>
               </yd-cell-item>         
           </yd-cell-group>                
+          <!-- <div style="margin-top:20px;margin-bottom:40px;align-items: flex-start;">              
+              <span slot="left">设备地址:</span>
+              <span slot="right" style="margin-left:.28rem;word-break:normal;display:block;white-space:normal;text-align:left;">{{address}}</span>   
+          </div>       -->
           <div class="center-holder">
             <router-link to="/newlocation" replace>
               <yd-button type="hollow">修改地址</yd-button>
@@ -40,13 +44,16 @@ export default {
     // 此时 data 已经被 observed 了
     this.fetchData();
   },
+  watch: {
+    $route: "fetchData"
+  },
   methods: {
     cancelClick() {
       this.$router.go(-1);
     },
     fetchData() {
       var self = this;
-      this.error = null;
+      this.$set(this, "error", null);
       this.$dialog.loading.open("载入中...");
       this.$ajax
         .post(process.env.SERVER_HOST, {
@@ -62,8 +69,11 @@ export default {
           if (res.data.resCode == 0) {
             //成功
             self.address = res.data.content.address;
-          } else if (res.data.resCode == "23001" || res.data.resCode == "000802") {
-            // TODO:管理员未登录
+          } else if (
+            res.data.resCode == "23001" ||
+            res.data.resCode == "000802"
+          ) {
+            // 管理员未登录
             self.$router.push({
               name: "Login",
               params: { redirect_path: "/location" }

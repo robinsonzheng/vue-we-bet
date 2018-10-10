@@ -55,26 +55,29 @@ export default {
         this.$dialog.loading.open("发送中...");
         var self = this;
         setTimeout(() => {
-          this.start = true;
+          self.start = true;
           //发送验证码
-          this.$ajax
+          self.$ajax
             .post(process.env.SERVER_HOST, {
               apiCode: 110204,
               content: {
                 mobile: self.mobile,
                 type: "SMS_JKP"
-              }
+              },
+              token: self.$store.state.apiToken,
+              terminalNo: self.$store.state.terminalNo
             })
             .then(res => {
-              this.$dialog.loading.close();
-              this.$dialog.toast({
-                mes: "已发送",
-                icon: "success",
-                timeout: 1000
-              });
+              self.$dialog.loading.close();
+              if (res.data.resCode == 0) {
+                self.$dialog.showOkToast("已发送");
+              } else {
+                self.$dialog.showErrToast("发送失败,请重试");
+              }
             })
             .catch(err => {
-              this.$dialog.loading.close();
+              self.$dialog.loading.close();
+              self.$dialog.showErrToast("发送失败,请重试");
             });
         }, 1000);
       }
@@ -82,12 +85,12 @@ export default {
     okClick() {
       var self = this;
       //验证验证码
-      if (this.verifyCode === "") {
+      if (this.verifyCode == "") {
         this.$dialog.showErrToast("请输入验证码");
         return;
       }
       //验证密码
-      if (this.pwd === "") {
+      if (this.pwd == "") {
         this.$dialog.showErrToast("请输入密码");
         return;
       }
@@ -107,15 +110,17 @@ export default {
       //修改密码
       this.$ajax
         .post(process.env.SERVER_HOST, {
-          apiCode: 110203,
+          apiCode: 110206,
           content: {
             username: this.mobile,
             newPwd: this.pwd,
             code: this.verifyCode
-          }
+          },
+          token: self.$store.state.apiToken,
+          terminalNo: self.$store.state.terminalNo
         })
         .then(res => {
-          if (res.data.resCode === 0) {
+          if (res.data.resCode == 0) {
             //修改成功
             self.$dialog.toast({
               mes: "修改成功",

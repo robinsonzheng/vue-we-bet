@@ -24,9 +24,9 @@
 export default {
   name: "Home",
   data() {
-    return {      
+    return {
       wxJSBridgeReady: false,
-      error:null
+      error: null
     };
   },
   created() {
@@ -80,7 +80,7 @@ export default {
               code: code
             })
             .then(function(res) {
-              if (res.status === 200) {
+              if (res.status == 200) {
                 console.log("请求成功");
                 console.log(res);
                 self.$cookie.set("openId", res.data.openId);
@@ -104,6 +104,14 @@ export default {
       } else {
         console.log("openId:" + openId);
         // debugger;
+        let beforeLoginUrl = this.$cookie.get("beforeLoginUrl");
+        console.log("beforeLoginUrl", beforeLoginUrl);
+        if (beforeLoginUrl) {
+          this.$cookie.set("beforeLoginUrl", "");
+          window.location.href = beforeLoginUrl;
+        } else {
+          this.$router.replace("/order");
+        }
       }
     }
   },

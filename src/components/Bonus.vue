@@ -11,7 +11,7 @@
                     <yd-flexbox-item>                        
                         <p v-if="bonusStatus==0">奖金将直接发送至您的微信账户</p>
 
-                         <div v-if="bonusStatus = 1">
+                         <div v-if="bonusStatus == 1">
                             <p class="tips">兑奖失败</p>
                             <div class="help-item">
                             <p>请拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,或关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
@@ -36,14 +36,14 @@
                 </yd-flexbox>
             </yd-flexbox-item>
             
-            <!-- <yd-flexbox-item>
+            <yd-flexbox-item>
                 <div class="help-item">
-                    <p>温馨提示</p>
-                    <p style="color:#ef4f4f">1.奖金超过1000元,需要前往即开票归属地区的销售网点按照规定进行兑奖。</p>
-                    <p>2.每台手机设备每人每日最多兑奖100次,且每日兑奖额上限为2万元。</p>
-                    <p>3.奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
+                    <p>温馨提示:</p>
+                    <p style="color:#ef4f4f">1.若您单笔奖金超过2万元,或者由于扫码有问题等情况无法兑奖,您需要前往即开票归属地区的销售网点按照规定进行兑奖。</p>                        
+                    <p>2.奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理。<a href="#" @click="enterHome">点我进入公众号>></a></p>
                 </div>
-            </yd-flexbox-item> -->
+            </yd-flexbox-item>            
+
         </yd-flexbox>
 
         <yd-flexbox direction="vertical" v-if="orderStatus!=3">
@@ -64,6 +64,26 @@
             </yd-flexbox-item>
         </yd-flexbox>
 
+        <yd-popup v-model="showNotification" :close-on-masker=false position="center">
+            <div style="background-color:#fff;border-radius:5px;padding:.28rem;">
+                <div style="height:40px;;line-height:40px;font-size:.32rem;">
+                    <p>                      
+                      <span v-show="bonusStatus==0">领取成功</span>
+                      <span v-show="bonusStatus==1">领取奖金失败</span>
+                    </p>                    
+                </div>                                   
+                <p v-show="bonusStatus==0" style="padding-bottom:.28rem;text-align:left;">
+                    奖金将于1小时内直接发放至您的微信账户,若没有到账,可以拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,也可以通过关注公众号联系客服处理
+                </p>
+                <p v-show="bonusStatus==1" style="padding-bottom:.28rem;text-align:left;">
+                    请拨打24小时服务热线:<a href="tel:400-900-5369">400-900-5369</a>,或关注公众号联系客服处理
+                </p>                    
+                <p style="height:50px;line-height:50px">
+                    <yd-button type="danger" style="width:80px;height:35px"  @click.native="okClick">我知道了</yd-button>
+                </p>               
+            </div>
+        </yd-popup>
+
     </div>
 </template>
 
@@ -74,10 +94,14 @@ export default {
       orderStatus: -1, //中奖状态
       bonusStatus: -1, //兑奖状态
       bonus: 0, //奖金金额,
-      errMsg: ""
+      errMsg: "",
+      showNotification: false
     };
   },
   created() {
+    // this.fetchData();
+  },
+  mounted() {
     this.fetchData();
   },
   watch: {
@@ -85,12 +109,19 @@ export default {
   },
   methods: {
     fetchData() {
-      let params = this.$route.params;
-      if (params) {
-        this.$set(this, "orderStatus", params.orderStatus);
-        this.$set(this, "bonusStatus", params.bonusStatus);
-        this.$set(this, "bonus", params.bonus || 0);
-      }
+      // debugger;
+      var self = this;
+      this.$nextTick(() => {
+        let params = this.$route.params;
+        if (params) {
+          self.$set(self, "orderStatus", params.orderStatus);
+          self.$set(self, "bonusStatus", params.bonusStatus);
+          self.$set(self, "bonus", params.bonus || 0);
+        }
+        if (self.orderStatus == 3) {
+          self.$set(this, "showNotification", true);
+        }
+      });
     },
     enterHome() {
       //进入公众号
@@ -98,6 +129,9 @@ export default {
     },
     backClick() {
       this.$router.replace({ path: "/duijiang" });
+    },
+    okClick() {
+      this.$set(this, "showNotification", false);
     }
   }
 };

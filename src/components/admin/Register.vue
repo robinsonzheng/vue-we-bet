@@ -76,18 +76,19 @@ export default {
             terminalNo: self.$store.state.terminalNo
           })
           .then(res => {
-            this.$dialog.loading.close();
-            this.$dialog.showOkToast("已发送");
+            self.$dialog.loading.close();
+            self.$dialog.showOkToast("已发送");
           })
           .catch(err => {
-            this.$dialog.loading.close();
+            self.$dialog.loading.close();
+            self.$dialog.showErrToast("发送失败,请重试");
           });
       }, 1000);
     },
     okClick() {
       var self = this;
       //验证姓名
-      if (this.name === "") {
+      if (this.name == "") {
         this.$dialog.showErrToast("请输入姓名");
         return;
       }
@@ -102,17 +103,17 @@ export default {
       }
 
       //验证验证码
-      if (this.verifyCode === "") {
+      if (this.verifyCode == "") {
         this.$dialog.showErrToast("请输入验证码");
         return;
       }
       //验证密码
-      if (this.pwd === "") {
+      if (this.pwd == "") {
         this.$dialog.showErrToast("请输入密码");
         return;
       }
 
-       //密码与密码确认是否一致
+      //密码与密码确认是否一致
       if (this.pwd != this.pwdConfirm) {
         this.$dialog.showErrToast("两次输入的密码不一致");
         return;
@@ -123,7 +124,6 @@ export default {
         this.$dialog.showErrToast("密码至少6位,只支持数字、字母、下划线");
         return;
       }
-
 
       //注册
       this.$dialog.loading.open("注册中...");
@@ -145,11 +145,14 @@ export default {
           if (res.data.resCode == 0) {
             //注册成功
             self.$dialog.showOkToast("注册成功", null, () => {
-              // self.$router.commit(
-              //   "updateManagerId",
-              //   res.data.content.managerId
-              // ); //更新managerId
-              self.$router.replace("/login"); //跳转到登录页面
+              //跳转到登录页面
+              self.$router.push({
+                name: "Login",
+                params: {
+                  redirect_path: "/system",
+                  redirect_params: {}
+                }
+              });
             });
           } else {
             //失败
